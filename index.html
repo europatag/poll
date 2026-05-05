@@ -415,11 +415,11 @@ body.portrait main { padding: 0 20px; }
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px; margin-bottom: 20px;
+  gap: 10px; margin-bottom: 20px;
 }
 .stat-box {
   background: var(--bg); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 24px 16px;
+  border-radius: var(--radius-sm); padding: 16px;
   text-align: center; transition: all var(--transition);
 }
 .stat-box:hover { box-shadow: var(--shadow-sm); }
@@ -630,45 +630,6 @@ input[type=number] { width: 70px; }
   .vote-grid { grid-template-columns: repeat(4, 1fr); }
   .admin-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
-
-
-/* ── WINNER BANNER ── */
-#winnerBanner {
-  text-align: center;
-  padding: 28px 20px 32px;
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #fffbe8 0%, #fff8d6 100%);
-  border: 1.5px solid rgba(212,168,67,0.35);
-  border-radius: var(--radius-sm);
-  animation: winnerReveal 0.7s cubic-bezier(0.4,0,0.2,1) both;
-}
-@keyframes winnerReveal {
-  0%  { opacity: 0; transform: scale(0.88) translateY(12px); }
-  60% { transform: scale(1.03) translateY(0); }
-  100%{ opacity: 1; transform: scale(1) translateY(0); }
-}
-.winner-label {
-  font-size: 0.72rem; font-weight: 600;
-  letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 10px;
-}
-.winner-number {
-  font-family: 'Fraunces', serif;
-  font-size: 5rem; font-weight: 900;
-  line-height: 1; color: var(--blue);
-  animation: winnerPop 0.5s cubic-bezier(0.4,0,0.2,1) 0.25s both;
-}
-@keyframes winnerPop {
-  0%  { opacity: 0; transform: scale(0.5); }
-  70% { transform: scale(1.12); }
-  100%{ opacity: 1; transform: scale(1); }
-}
-.winner-votes {
-  font-size: 0.9rem; color: var(--text-mid);
-  margin-top: 8px; font-weight: 400;
-}
-
 </style>
 </head>
 <body>
@@ -738,15 +699,9 @@ input[type=number] { width: 70px; }
 
     <!-- RESULTS CARD -->
     <div class="card hidden" id="resultsCard">
-      <!-- Winner banner: only shown when closed -->
-      <div id="winnerBanner" class="hidden">
-        <div class="winner-label">🏆 Gewinner</div>
-        <div class="winner-number" id="winnerNumber">–</div>
-        <div class="winner-votes" id="winnerVotes"></div>
-      </div>
-      <div class="card-label" id="resultsLabel">Live-Ergebnisse</div>
-      <h2 id="resultsTitle">Aktuelle Abstimmung</h2>
-      <p class="card-desc" id="resultsDesc">Aktualisiert alle 3 Sekunden</p>
+      <div class="card-label">Live-Ergebnisse</div>
+      <h2>Aktuelle Abstimmung</h2>
+      <p class="card-desc">Aktualisiert alle 3 Sekunden</p>
       <div class="chart-container" id="chartContainer"></div>
     </div>
 
@@ -764,11 +719,19 @@ input[type=number] { width: 70px; }
         <div class="admin-grid">
           <div class="stat-box online">
             <span class="stat-num" id="statOnline">–</span>
-            <div class="stat-lbl">🟢 Wählen gerade</div>
+            <div class="stat-lbl">🟢 Online</div>
           </div>
           <div class="stat-box voted-s">
             <span class="stat-num" id="statVoted">–</span>
-            <div class="stat-lbl">✅ Schon gewählt</div>
+            <div class="stat-lbl">✅ Abgestimmt</div>
+          </div>
+          <div class="stat-box notvoted">
+            <span class="stat-num" id="statNotVoted">–</span>
+            <div class="stat-lbl">⏳ Ausstehend</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num" id="statTotal">–</span>
+            <div class="stat-lbl">📊 Stimmen</div>
           </div>
         </div>
 
@@ -803,8 +766,6 @@ input[type=number] { width: 70px; }
         <hr class="divider">
         <span class="section-label">Balkendiagramm</span>
         <div class="chart-container" id="adminChartContainer"></div>
-      </div>
-    </div>
       </div>
     </div>
 
@@ -1050,41 +1011,8 @@ function renderVoteGrid() {
   const grid    = document.getElementById('voteGrid');
   const voted   = document.getElementById('votedState');
   const results = document.getElementById('resultsCard');
-  const banner  = document.getElementById('winnerBanner');
-  const rLabel  = document.getElementById('resultsLabel');
-  const rTitle  = document.getElementById('resultsTitle');
-  const rDesc   = document.getElementById('resultsDesc');
 
-  // CLOSED: show big winner banner + chart, hide voting UI
-  if (state.status === 'closed') {
-    grid.classList.add('hidden');
-    voted.classList.remove('show');
-    results.classList.remove('hidden');
-    // Winner calculation
-    const maxV = Math.max(0, ...Object.values(state.votes));
-    const winners = Object.entries(state.votes).filter(([,v]) => v === maxV && v > 0).map(([k]) => k);
-    if (winners.length > 0) {
-      document.getElementById('winnerNumber').textContent = winners.join(' & ');
-      document.getElementById('winnerVotes').textContent =
-        maxV + (maxV === 1 ? ' Stimme' : ' Stimmen');
-      banner.classList.remove('hidden');
-    } else {
-      banner.classList.add('hidden');
-    }
-    rLabel.textContent = 'Endergebnis';
-    rTitle.textContent = 'Abstimmung beendet';
-    rDesc.textContent = 'Das finale Ergebnis';
-    return;
-  }
-
-  // Reset results card to live mode
-  banner.classList.add('hidden');
-  rLabel.textContent = 'Live-Ergebnisse';
-  rTitle.textContent = 'Aktuelle Abstimmung';
-  rDesc.textContent = 'Aktualisiert alle 3 Sekunden';
-
-  // VOTED (and not closed): show thank-you
-  if (state.hasVoted) {
+  if (state.hasVoted || state.status === 'closed') {
     grid.classList.add('hidden');
     voted.classList.add('show');
     document.getElementById('votedFor').textContent = state.myVote || '?';
@@ -1147,17 +1075,13 @@ async function setStatus(s) {
 }
 
 async function resetVotes() {
-  if (!confirm('Alle Stimmen wirklich löschen?\nGeräte die bereits abgestimmt haben können danach erneut wählen.')) return;
+  if (!confirm('Alle Stimmen wirklich löschen?')) return;
   try {
     await sbFetch('votes?voted_at=gte.1970-01-01', 'DELETE');
-    // Clear all aegVoted_ keys from localStorage so devices can vote again
-    Object.keys(localStorage).forEach(k => {
-      if (k.startsWith('aegVoted_')) localStorage.removeItem(k);
-    });
-    state.votes = {}; state.votedCount = 0; state.hasVoted = false; state.myVote = null;
+    state.votes = {}; state.votedCount = 0;
     for (let i = 1; i <= state.optionCount; i++) state.votes[i] = 0;
-    renderVoteGrid(); renderChart(); updateAdminStats();
-    showToast('🔄 Zurückgesetzt – alle Geräte können erneut wählen');
+    renderChart(); updateAdminStats();
+    showToast('🔄 Zurückgesetzt');
   } catch(e) { showToast('Fehler: ' + e.message); }
 }
 
@@ -1206,8 +1130,10 @@ function updateManualSelect() {
 
 function updateAdminStats() {
   const set = (id, v) => { const e = document.getElementById(id); if(e) { e.textContent = v; e.style.transform = 'scale(1.15)'; setTimeout(() => e.style.transform = '', 200); } };
-  set('statOnline', state.onlineCount);
-  set('statVoted',  state.votedCount);
+  set('statOnline',   state.onlineCount);
+  set('statVoted',    state.votedCount);
+  set('statNotVoted', Math.max(0, state.onlineCount - state.votedCount));
+  set('statTotal',    state.votedCount);
 }
 
 function renderAdminPanel() {
@@ -1284,3 +1210,6 @@ function showToast(msg) {
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), 3000);
 }
+</script>
+</body>
+</html>
