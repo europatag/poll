@@ -647,12 +647,12 @@ input[type=number] { width: 70px; }
     <div class="op-card" id="opPortrait" onclick="selectOrient('portrait')">
       <div class="op-icon">📱</div>
       <div class="op-lbl">Hochformat</div>
-      <div class="op-desc">Mobil & Tablet</div>
+      <div class="op-desc">Handy</div>
     </div>
     <div class="op-card" id="opLandscape" onclick="selectOrient('landscape')">
       <div class="op-icon">🖥️</div>
       <div class="op-lbl">Querformat</div>
-      <div class="op-desc">Desktop & Präsentation</div>
+      <div class="op-desc">iPad & Desktop</div>
     </div>
   </div>
   <button class="op-btn" id="opContinue" onclick="confirmOrient()">Weiter →</button>
@@ -669,10 +669,9 @@ input[type=number] { width: 70px; }
       <div class="eu-star"></div><div class="eu-star"></div>
       <div class="eu-star"></div><div class="eu-star"></div>
     </div>
-    <div class="header-eyebrow">AEG · 9. Mai 2025</div>
+    <div class="header-eyebrow">AEG · 11. Mai 2025</div>
     <h1>Food<br><em>Contest</em></h1>
     <p class="tagline">Europatag — Wähle dein Lieblingsgericht</p>
-    <div class="date-chip">🇪🇺 Europa feiert</div>
     <div id="headerStatus" style="margin-top:16px"></div>
   </header>
 
@@ -748,8 +747,8 @@ input[type=number] { width: 70px; }
         <hr class="divider">
         <span class="section-label">Anzahl Gerichte</span>
         <div class="range-row">
-          <label>Gerichte (1–20)</label>
-          <input type="range" id="optionSlider" min="1" max="20" value="10" oninput="updateOptionCount(this.value)">
+          <label>Gerichte (1–100)</label>
+          <input type="range" id="optionSlider" min="1" max="100" value="10" oninput="updateOptionCount(this.value)">
           <span class="range-val" id="optionVal">10</span>
         </div>
         <button class="btn btn-gold" onclick="saveOptionCount()" style="margin-top:4px">💾 Speichern</button>
@@ -1029,7 +1028,7 @@ function renderVoteGrid() {
   for (let i = 1; i <= state.optionCount; i++) {
     const btn = document.createElement('button');
     btn.className = 'vote-btn';
-    btn.innerHTML = `<span class="vn">${i}</span><span class="vl">Gericht</span>`;
+    btn.innerHTML = `<span class="vn">${i}</span>`;
     btn.onclick = () => castVote(i);
     if (state.status !== 'open') btn.disabled = true;
     grid.appendChild(btn);
