@@ -1,1 +1,1216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEG Europatag – Food Contest</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Fraunces:ital,wght@0,700;0,900;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #003399;
+  --blue-light: #e8eeff;
+  --blue-mid: #c5d0f5;
+  --gold: #D4A843;
+  --gold-light: #fdf5e4;
+  --red: #C0392B;
+  --green: #1a7f3c;
+  --bg: #f9f9fb;
+  --white: #ffffff;
+  --text: #0d0d1a;
+  --text-mid: #5a5a78;
+  --text-light: #9898b0;
+  --border: rgba(0,51,153,0.1);
+  --shadow-sm: 0 2px 12px rgba(0,51,153,0.07);
+  --shadow-md: 0 8px 32px rgba(0,51,153,0.10);
+  --shadow-lg: 0 20px 60px rgba(0,51,153,0.13);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
 
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── ORIENTATION PICKER ── */
+#orientPicker {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--white);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+}
+.op-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--blue); letter-spacing: 0.5px;
+  margin-bottom: 48px;
+  display: flex; align-items: center; gap: 10px;
+}
+.op-stars { color: var(--gold); font-size: 0.75rem; letter-spacing: 3px; }
+.op-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem; font-weight: 900;
+  color: var(--text); margin-bottom: 8px; text-align: center;
+}
+.op-sub {
+  color: var(--text-mid); font-size: 0.95rem;
+  margin-bottom: 48px; text-align: center;
+}
+.op-cards {
+  display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+}
+.op-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  width: 180px;
+  box-shadow: var(--shadow-sm);
+}
+.op-card:hover {
+  border-color: var(--blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+.op-card.selected {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+.op-icon {
+  font-size: 2.8rem;
+  transition: transform var(--transition);
+}
+.op-card:hover .op-icon { transform: scale(1.1); }
+.op-card .op-lbl {
+  font-weight: 600; font-size: 0.95rem;
+  color: var(--text);
+}
+.op-card .op-desc {
+  font-size: 0.8rem; color: var(--text-mid); text-align: center;
+}
+.op-btn {
+  margin-top: 36px;
+  background: var(--blue); color: #fff;
+  border: none; border-radius: 100px;
+  padding: 14px 40px; font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0; pointer-events: none;
+  transform: translateY(10px);
+}
+.op-btn.visible {
+  opacity: 1; pointer-events: auto;
+  transform: translateY(0);
+}
+.op-btn:hover { background: #0029a0; box-shadow: 0 4px 20px rgba(0,51,153,0.3); }
+
+/* ── MAIN APP ── */
+#app { display: none; min-height: 100vh; }
+
+/* ── PORTRAIT LAYOUT ── */
+body.portrait #app {
+  display: flex; flex-direction: column;
+  max-width: 460px; margin: 0 auto;
+  padding: 0 0 40px;
+}
+body.portrait header {
+  padding: 48px 28px 28px;
+  text-align: center;
+}
+
+/* ── LANDSCAPE LAYOUT ── */
+body.landscape #app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+body.landscape header {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  padding: 48px 32px;
+  display: flex; flex-direction: column;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+body.landscape main {
+  grid-column: 2;
+  padding: 40px 40px 60px;
+  overflow-y: auto;
+}
+
+/* ── HEADER ── */
+.eu-flag-bar {
+  display: flex; gap: 5px; justify-content: center;
+  margin-bottom: 24px;
+}
+.eu-star {
+  width: 10px; height: 10px;
+  background: var(--gold);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: starPulse 2s ease-in-out infinite;
+}
+.eu-star:nth-child(odd) { animation-delay: 0.3s; }
+.eu-star:nth-child(3n) { animation-delay: 0.6s; }
+@keyframes starPulse {
+  0%,100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.header-eyebrow {
+  font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 10px;
+}
+header h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 2.2rem; font-weight: 900;
+  color: var(--text); line-height: 1.05;
+  margin-bottom: 4px;
+}
+header h1 em {
+  font-style: italic; color: var(--blue);
+  font-weight: 600;
+}
+header .tagline {
+  font-size: 0.88rem; color: var(--text-mid);
+  font-weight: 300; margin-bottom: 6px;
+}
+header .date-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gold-light); color: var(--gold);
+  border: 1px solid rgba(212,168,67,0.25);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 16px;
+}
+
+/* Landscape sidebar extras */
+body.landscape .sidebar-status {
+  margin-top: auto; padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── MAIN ── */
+body.portrait main { padding: 0 20px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+}
+.card:nth-child(2) { animation-delay: 0.08s; }
+.card:nth-child(3) { animation-delay: 0.16s; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card-label {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-light); margin-bottom: 8px;
+}
+.card h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem; font-weight: 700;
+  color: var(--text); margin-bottom: 4px;
+}
+.card .card-desc {
+  font-size: 0.875rem; color: var(--text-mid);
+  margin-bottom: 20px; font-weight: 300;
+}
+
+/* ── STATUS BADGE ── */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 13px; border-radius: 100px;
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.3px; margin-bottom: 18px;
+}
+.status-badge.open { background: #e8f5ee; color: var(--green); border: 1px solid rgba(26,127,60,0.2); }
+.status-badge.closed { background: #fdecea; color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
+.status-badge.waiting { background: var(--gold-light); color: var(--gold); border: 1px solid rgba(212,168,67,0.25); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; }
+.status-badge.open .status-dot { background: var(--green); animation: pulse 1.5s infinite; }
+.status-badge.closed .status-dot { background: var(--red); }
+.status-badge.waiting .status-dot { background: var(--gold); animation: pulse 1.5s infinite; }
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+/* ── VOTE GRID ── */
+.vote-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.vote-btn {
+  aspect-ratio: 1;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative; overflow: hidden;
+}
+.vote-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--blue);
+  opacity: 0; transform: scale(0);
+  border-radius: inherit;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.vote-btn:hover::before { opacity: 0.06; transform: scale(1); }
+.vote-btn:hover {
+  border-color: var(--blue);
+  transform: scale(1.04);
+  box-shadow: var(--shadow-sm);
+}
+.vote-btn:active { transform: scale(0.97); }
+.vote-btn:disabled {
+  opacity: 0.4; cursor: not-allowed;
+  transform: none !important;
+}
+.vote-btn .vn {
+  font-family: 'Fraunces', serif;
+  font-size: 1.35rem; font-weight: 900;
+  color: var(--text); position: relative;
+}
+.vote-btn .vl {
+  font-size: 0.6rem; font-weight: 500;
+  color: var(--text-light); letter-spacing: 0.5px;
+  text-transform: uppercase; position: relative;
+}
+
+/* ── VOTED ANIMATION ── */
+.voted-state {
+  display: none;
+  flex-direction: column; align-items: center;
+  text-align: center; padding: 12px 0;
+}
+.voted-state.show { display: flex; animation: voteSuccess 0.6s cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes voteSuccess {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  60% { transform: scale(1.05) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.voted-circle {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), #4070ff);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+  animation: circleIn 0.5s cubic-bezier(0.4,0,0.2,1) 0.1s both;
+  box-shadow: 0 8px 28px rgba(0,51,153,0.25);
+}
+@keyframes circleIn {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.voted-circle svg { animation: checkDraw 0.4s ease 0.3s both; }
+@keyframes checkDraw {
+  from { stroke-dashoffset: 30; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+.voted-state h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.3rem; font-weight: 700; margin-bottom: 4px;
+}
+.voted-state p { color: var(--text-mid); font-size: 0.88rem; }
+.voted-state .vote-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--blue-light); color: var(--blue);
+  border-radius: 100px; padding: 6px 16px;
+  font-weight: 600; font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+/* ── CHART ── */
+.chart-container { margin-top: 4px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 40px;
+  align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.bar-label {
+  font-family: 'Fraunces', serif;
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--text-mid); text-align: right;
+}
+.bar-track {
+  background: var(--bg);
+  border-radius: 6px; height: 24px;
+  overflow: hidden; border: 1px solid var(--border);
+  position: relative;
+}
+.bar-fill {
+  height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue) 0%, #5580ff 100%);
+  transition: width 0.9s cubic-bezier(0.4,0,0.2,1);
+  min-width: 0;
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 100%);
+}
+.bar-fill.winner {
+  background: linear-gradient(90deg, var(--gold) 0%, #f0c855 100%);
+}
+.bar-count {
+  font-size: 0.8rem; color: var(--text-mid);
+  font-weight: 600; text-align: left;
+}
+
+/* ── ADMIN ── */
+#adminPanel { display: none; }
+
+.admin-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+  display: flex; justify-content: center; padding: 12px 20px 20px;
+  pointer-events: none;
+}
+.admin-pill {
+  background: var(--text); color: rgba(255,255,255,0.7);
+  border: none; border-radius: 100px;
+  padding: 10px 20px; font-size: 0.78rem;
+  font-family: 'DM Sans', sans-serif; font-weight: 500;
+  letter-spacing: 0.5px; cursor: pointer;
+  pointer-events: auto;
+  transition: all var(--transition);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  display: flex; align-items: center; gap: 6px;
+}
+.admin-pill:hover { color: #fff; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+.admin-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px; margin-bottom: 20px;
+}
+.stat-box {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+  text-align: center; transition: all var(--transition);
+}
+.stat-box:hover { box-shadow: var(--shadow-sm); }
+.stat-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem; font-weight: 900;
+  line-height: 1; color: var(--text);
+  display: block;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.stat-box.online .stat-num { color: var(--green); }
+.stat-box.voted-s .stat-num { color: var(--blue); }
+.stat-box.notvoted .stat-num { color: var(--red); }
+.stat-lbl {
+  font-size: 0.72rem; color: var(--text-light);
+  text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+  font-weight: 500;
+}
+
+.admin-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  padding: 9px 20px; border-radius: 100px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+  font-weight: 600; cursor: pointer; border: none;
+  transition: all var(--transition); letter-spacing: 0.2px;
+}
+.btn-blue { background: var(--blue); color: #fff; }
+.btn-blue:hover { background: #0029a0; box-shadow: 0 4px 16px rgba(0,51,153,0.3); }
+.btn-red { background: #fdecea; color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
+.btn-red:hover { background: var(--red); color: #fff; }
+.btn-gray { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
+.btn-gray:hover { background: var(--border); color: var(--text); }
+.btn-gold { background: var(--gold-light); color: var(--gold); border: 1px solid rgba(212,168,67,0.25); }
+.btn-gold:hover { background: var(--gold); color: #fff; }
+
+.section-label {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-light); margin-bottom: 12px; margin-top: 20px;
+  display: block;
+}
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+.range-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.range-row label { font-size: 0.88rem; font-weight: 500; min-width: 110px; }
+input[type=range] { flex: 1; accent-color: var(--blue); }
+.range-val {
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem; font-weight: 700;
+  color: var(--blue); min-width: 28px; text-align: center;
+}
+
+.manual-row {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  background: var(--bg); border-radius: var(--radius-sm);
+  padding: 14px; border: 1px solid var(--border);
+}
+select, input[type=number] {
+  padding: 8px 12px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+  color: var(--text); background: var(--white);
+  transition: border-color var(--transition);
+}
+select:focus, input[type=number]:focus {
+  outline: none; border-color: var(--blue);
+}
+input[type=number] { width: 70px; }
+
+/* ── ADMIN LOGIN ── */
+#adminLogin {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(13,13,26,0.4); backdrop-filter: blur(12px);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#adminLogin.show {
+  opacity: 1; pointer-events: auto;
+}
+.login-sheet {
+  background: var(--white); border-radius: 28px 28px 20px 20px;
+  padding: 36px; width: 100%; max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(40px);
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  animation: none;
+}
+#adminLogin.show .login-sheet { transform: translateY(0); }
+.login-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 100px; margin: 0 auto 24px;
+}
+.login-sheet h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--text); margin-bottom: 4px;
+}
+.login-sheet p { color: var(--text-mid); font-size: 0.88rem; margin-bottom: 20px; }
+.pw-input-wrap { position: relative; margin-bottom: 12px; }
+.pw-input-wrap input {
+  width: 100%; padding: 13px 16px;
+  border-radius: 12px; border: 1.5px solid var(--border);
+  font-size: 1rem; font-family: 'DM Sans', sans-serif;
+  color: var(--text); transition: border-color var(--transition);
+  background: var(--bg);
+}
+.pw-input-wrap input:focus { outline: none; border-color: var(--blue); }
+.login-sheet .btn { width: 100%; padding: 13px; border-radius: 12px; font-size: 0.95rem; }
+.pw-error {
+  color: var(--red); font-size: 0.82rem; margin-top: 8px;
+  display: none; text-align: center; animation: shake 0.4s ease;
+}
+.pw-error.show { display: block; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.login-cancel {
+  display: block; width: 100%; margin-top: 10px;
+  background: none; border: none;
+  color: var(--text-mid); font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  padding: 8px; border-radius: 8px;
+  transition: color var(--transition);
+}
+.login-cancel:hover { color: var(--text); }
+
+/* ── ADMIN SUCCESS ANIMATION ── */
+.admin-welcome {
+  position: fixed; inset: 0; z-index: 888;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.admin-welcome-inner {
+  background: var(--white); border-radius: 24px;
+  padding: 40px 48px; text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: adminWelcome 2s cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes adminWelcome {
+  0% { opacity: 0; transform: scale(0.8); }
+  20% { opacity: 1; transform: scale(1.02); }
+  80% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); pointer-events: none; }
+}
+.admin-welcome-inner .aw-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.admin-welcome-inner h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem; font-weight: 700; margin-bottom: 4px;
+}
+.admin-welcome-inner p { color: var(--text-mid); font-size: 0.88rem; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: var(--text); color: #fff;
+  padding: 11px 24px; border-radius: 100px;
+  font-size: 0.88rem; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  z-index: 500; pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── MISC ── */
+.hidden { display: none !important; }
+.eu-accent { color: var(--blue); }
+
+/* ── ADMIN COLLAPSED STATE ── */
+#adminPanel .admin-body { overflow: hidden; }
+#adminPanel.collapsed .admin-body {
+  max-height: 0 !important;
+  opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
+#adminPanel .admin-body {
+  max-height: 2000px;
+  opacity: 1;
+  transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+}
+.admin-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+.admin-toggle-row .chevron {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: var(--text-mid);
+  transition: transform var(--transition);
+}
+#adminPanel.collapsed .chevron { transform: rotate(180deg); }
+
+/* Landscape tweaks */
+@media (min-height: 500px) {
+  body.landscape header .eu-flag-bar { justify-content: flex-start; }
+  body.landscape header .date-chip { display: inline-flex; }
+}
+@media (max-width: 600px) {
+  .vote-grid { grid-template-columns: repeat(4, 1fr); }
+  .admin-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── ORIENTATION PICKER ── -->
+<div id="orientPicker">
+  <div class="op-logo">
+    <span class="op-stars">★★★★★★</span>
+    AEG Europatag
+    <span class="op-stars">★★★★★★</span>
+  </div>
+  <div class="op-title">Format wählen</div>
+  <div class="op-sub">Wie möchtest du abstimmen?</div>
+  <div class="op-cards">
+    <div class="op-card" id="opPortrait" onclick="selectOrient('portrait')">
+      <div class="op-icon">📱</div>
+      <div class="op-lbl">Hochformat</div>
+      <div class="op-desc">Mobil & Tablet</div>
+    </div>
+    <div class="op-card" id="opLandscape" onclick="selectOrient('landscape')">
+      <div class="op-icon">🖥️</div>
+      <div class="op-lbl">Querformat</div>
+      <div class="op-desc">Desktop & Präsentation</div>
+    </div>
+  </div>
+  <button class="op-btn" id="opContinue" onclick="confirmOrient()">Weiter →</button>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+  <header>
+    <div class="eu-flag-bar" id="flagBar">
+      <div class="eu-star"></div><div class="eu-star"></div>
+      <div class="eu-star"></div><div class="eu-star"></div>
+      <div class="eu-star"></div><div class="eu-star"></div>
+      <div class="eu-star"></div><div class="eu-star"></div>
+      <div class="eu-star"></div><div class="eu-star"></div>
+      <div class="eu-star"></div><div class="eu-star"></div>
+    </div>
+    <div class="header-eyebrow">AEG · 9. Mai 2025</div>
+    <h1>Food<br><em>Contest</em></h1>
+    <p class="tagline">Europatag — Wähle dein Lieblingsgericht</p>
+    <div class="date-chip">🇪🇺 Europa feiert</div>
+    <div id="headerStatus" style="margin-top:16px"></div>
+  </header>
+
+  <main>
+    <!-- VOTING CARD -->
+    <div class="card" id="voteCard">
+      <div class="card-label">Deine Stimme</div>
+      <h2 id="voteTitle">Für welches Gericht stimmst du?</h2>
+      <p class="card-desc" id="voteDesc">Tippe auf die Nummer deines Lieblingsgerichts</p>
+      <div id="statusBadge"></div>
+
+      <div class="vote-grid" id="voteGrid"></div>
+
+      <div class="voted-state" id="votedState">
+        <div class="voted-circle">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="30" stroke-dashoffset="30" style="animation: checkDraw 0.5s ease 0.3s both">
+            <polyline points="7,17 14,24 27,10"/>
+          </svg>
+        </div>
+        <h3>Danke für deine Stimme!</h3>
+        <p>Deine Stimme wurde erfasst</p>
+        <div class="vote-badge">Gericht <strong id="votedFor" style="margin-left:4px"></strong></div>
+      </div>
+    </div>
+
+    <!-- RESULTS CARD -->
+    <div class="card hidden" id="resultsCard">
+      <div class="card-label">Live-Ergebnisse</div>
+      <h2>Aktuelle Abstimmung</h2>
+      <p class="card-desc">Aktualisiert alle 3 Sekunden</p>
+      <div class="chart-container" id="chartContainer"></div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="card" id="adminPanel">
+      <div class="admin-toggle-row" onclick="toggleAdmin()">
+        <div>
+          <div class="card-label">Admin</div>
+          <h2 style="font-size:1.1rem">Dashboard</h2>
+        </div>
+        <div class="chevron">▲</div>
+      </div>
+      <div class="admin-body">
+        <div style="height:20px"></div>
+        <div class="admin-grid">
+          <div class="stat-box online">
+            <span class="stat-num" id="statOnline">–</span>
+            <div class="stat-lbl">🟢 Online</div>
+          </div>
+          <div class="stat-box voted-s">
+            <span class="stat-num" id="statVoted">–</span>
+            <div class="stat-lbl">✅ Abgestimmt</div>
+          </div>
+          <div class="stat-box notvoted">
+            <span class="stat-num" id="statNotVoted">–</span>
+            <div class="stat-lbl">⏳ Ausstehend</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num" id="statTotal">–</span>
+            <div class="stat-lbl">📊 Stimmen</div>
+          </div>
+        </div>
+
+        <hr class="divider">
+        <span class="section-label">Abstimmung steuern</span>
+        <div class="admin-controls">
+          <button class="btn btn-blue" onclick="setStatus('open')">▶ Starten</button>
+          <button class="btn btn-red" onclick="setStatus('closed')">⏹ Beenden</button>
+          <button class="btn btn-gray" onclick="setStatus('waiting')">⏸ Pause</button>
+          <button class="btn btn-gray" onclick="resetVotes()">🔄 Reset</button>
+        </div>
+
+        <hr class="divider">
+        <span class="section-label">Anzahl Gerichte</span>
+        <div class="range-row">
+          <label>Gerichte (1–20)</label>
+          <input type="range" id="optionSlider" min="1" max="20" value="10" oninput="updateOptionCount(this.value)">
+          <span class="range-val" id="optionVal">10</span>
+        </div>
+        <button class="btn btn-gold" onclick="saveOptionCount()" style="margin-top:4px">💾 Speichern</button>
+
+        <hr class="divider">
+        <span class="section-label">Stimmen manuell</span>
+        <div class="manual-row">
+          <label style="font-size:0.83rem;font-weight:600;color:var(--text-mid)">Gericht</label>
+          <select id="manualOption"></select>
+          <label style="font-size:0.83rem;font-weight:600;color:var(--text-mid)">Anzahl</label>
+          <input type="number" id="manualCount" value="1" min="1" max="50">
+          <button class="btn btn-gold" onclick="addManualVotes()">➕</button>
+        </div>
+
+        <hr class="divider">
+        <span class="section-label">Balkendiagramm</span>
+        <div class="chart-container" id="adminChartContainer"></div>
+      </div>
+    </div>
+
+    <div style="height:60px"></div>
+  </main>
+</div>
+
+<!-- Admin bottom bar -->
+<div class="admin-bar" id="adminBar">
+  <button class="admin-pill" onclick="openAdminLogin()" id="adminPillBtn">
+    <span class="dot"></span>
+    Admin-Zugang
+  </button>
+</div>
+
+<!-- Admin Login Sheet -->
+<div id="adminLogin">
+  <div class="login-sheet">
+    <div class="login-handle"></div>
+    <h2>Admin-Zugang</h2>
+    <p>Bitte Passwort eingeben</p>
+    <div class="pw-input-wrap">
+      <input type="password" id="adminPwInput" placeholder="••••••••••"
+        onkeydown="if(event.key==='Enter')checkAdminPw()">
+    </div>
+    <div class="pw-error" id="pwErr">Falsches Passwort – bitte erneut versuchen</div>
+    <button class="btn btn-blue" onclick="checkAdminPw()">Einloggen</button>
+    <button class="login-cancel" onclick="closeAdminLogin()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const SUPABASE_URL  = 'https://uowfukpnmlfbapbftobc.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvd2Z1a3BubWxmYmFwYmZ0b2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODQ4NzIsImV4cCI6MjA5MzU2MDg3Mn0.kfZjXkb2bRNXAFONfgmVUo36mY77znqJ6x5RrYVSFew';
+const ADMIN_PASSWORD = 'Tiger123!abc';
+
+// ══════════════════════════════════════════════
+//  ORIENTATION PICKER
+// ══════════════════════════════════════════════
+let selectedOrient = null;
+
+function selectOrient(o) {
+  selectedOrient = o;
+  document.querySelectorAll('.op-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(o === 'portrait' ? 'opPortrait' : 'opLandscape').classList.add('selected');
+  const btn = document.getElementById('opContinue');
+  btn.classList.add('visible');
+}
+
+function confirmOrient() {
+  if (!selectedOrient) return;
+  document.body.classList.add(selectedOrient);
+  const picker = document.getElementById('orientPicker');
+  picker.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+  picker.style.opacity = '0';
+  picker.style.transform = 'scale(1.04)';
+  setTimeout(() => {
+    picker.style.display = 'none';
+    document.getElementById('app').style.display = selectedOrient === 'portrait' ? 'flex' : 'grid';
+    init();
+  }, 420);
+}
+
+// Auto-detect & skip if already obvious
+window.addEventListener('load', () => {
+  // Auto-suggest based on viewport
+  if (window.innerWidth >= 900) {
+    document.getElementById('opLandscape').style.border = '2px solid rgba(0,51,153,0.3)';
+  }
+});
+
+// ══════════════════════════════════════════════
+//  SUPABASE
+// ══════════════════════════════════════════════
+async function sbFetch(path, method = 'GET', body = null, extra = {}) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + SUPABASE_ANON,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(extra.headers || {})
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let state = {
+  status: 'waiting',
+  optionCount: 10,
+  votes: {},
+  hasVoted: false,
+  myVote: null,
+  isAdmin: false,
+  onlineCount: 0,
+  votedCount: 0,
+  sessionId: getSessionId()
+};
+
+function getSessionId() {
+  let id = localStorage.getItem('aegSessionId');
+  if (!id) { id = crypto.randomUUID(); localStorage.setItem('aegSessionId', id); }
+  return id;
+}
+
+function getFingerprint() {
+  const str = [navigator.userAgent, navigator.language, screen.width, screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone].join('|');
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  return Math.abs(h).toString(36);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+async function init() {
+  await loadSettings();
+  await loadVotes();
+  await checkAlreadyVoted();
+  await pingOnline();
+  renderStatus();
+  renderVoteGrid();
+  renderChart();
+  if (state.isAdmin) renderAdminPanel();
+
+  setInterval(async () => {
+    await loadVotes();
+    await loadSettings();
+    await pingOnline();
+    renderStatus();
+    renderChart();
+    if (state.isAdmin) updateAdminStats();
+  }, 3000);
+}
+
+// ══════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════
+async function loadSettings() {
+  try {
+    const rows = await sbFetch('contest_settings?key=eq.config&select=value');
+    if (rows && rows.length) {
+      const cfg = JSON.parse(rows[0].value);
+      state.status = cfg.status || 'waiting';
+      state.optionCount = cfg.optionCount || 10;
+    }
+  } catch(e) {}
+}
+
+async function loadVotes() {
+  try {
+    const rows = await sbFetch('votes?select=option');
+    const counts = {};
+    for (let i = 1; i <= state.optionCount; i++) counts[i] = 0;
+    if (rows) rows.forEach(r => { if (counts[r.option] !== undefined) counts[r.option]++; });
+    state.votes = counts;
+    state.votedCount = rows ? rows.length : 0;
+  } catch(e) {}
+}
+
+async function checkAlreadyVoted() {
+  const fp = getFingerprint();
+  const stored = localStorage.getItem('aegVoted_' + fp);
+  if (stored) { state.hasVoted = true; state.myVote = parseInt(stored); return; }
+  try {
+    const rows = await sbFetch(`votes?browser_fp=eq.${fp}&select=option`);
+    if (rows && rows.length) {
+      state.hasVoted = true; state.myVote = rows[0].option;
+      localStorage.setItem('aegVoted_' + fp, rows[0].option);
+    }
+  } catch(e) {}
+}
+
+async function pingOnline() {
+  try {
+    const now = new Date().toISOString();
+    const cutoff = new Date(Date.now() - 30000).toISOString();
+    await sbFetch('presence', 'POST', { session_id: state.sessionId, last_seen: now }, {
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+    });
+    const rows = await sbFetch(`presence?last_seen=gte.${cutoff}&select=session_id`);
+    state.onlineCount = rows ? rows.length : 0;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+//  VOTE
+// ══════════════════════════════════════════════
+async function castVote(option) {
+  if (state.hasVoted) { showToast('Du hast bereits abgestimmt!'); return; }
+  if (state.status !== 'open') { showToast('Die Abstimmung ist gerade nicht geöffnet.'); return; }
+  const fp = getFingerprint();
+  let ip = 'unknown';
+  try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); ip = d.ip; } catch(e) {}
+  try {
+    await sbFetch('votes', 'POST', {
+      option, browser_fp: fp, ip_address: ip,
+      session_id: state.sessionId, voted_at: new Date().toISOString()
+    }, { headers: { 'Prefer': 'return=minimal' } });
+    state.hasVoted = true; state.myVote = option;
+    localStorage.setItem('aegVoted_' + fp, option);
+    await loadVotes();
+    renderVoteGrid();
+    renderChart();
+    showToast('✅ Stimme abgegeben für Gericht ' + option);
+  } catch(e) {
+    if (e.message.includes('duplicate') || e.message.includes('unique')) {
+      state.hasVoted = true; showToast('Du hast bereits abgestimmt!');
+    } else { showToast('Fehler – bitte erneut versuchen'); }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderStatus() {
+  const labels = {
+    open:    '<span class="status-badge open"><span class="status-dot"></span>Abstimmung läuft</span>',
+    closed:  '<span class="status-badge closed"><span class="status-dot"></span>Abstimmung beendet</span>',
+    waiting: '<span class="status-badge waiting"><span class="status-dot"></span>Noch nicht gestartet</span>'
+  };
+  const html = labels[state.status] || labels.waiting;
+  document.getElementById('statusBadge').innerHTML = html;
+  const hs = document.getElementById('headerStatus');
+  if (hs) hs.innerHTML = html;
+}
+
+function renderVoteGrid() {
+  const grid    = document.getElementById('voteGrid');
+  const voted   = document.getElementById('votedState');
+  const results = document.getElementById('resultsCard');
+
+  if (state.hasVoted || state.status === 'closed') {
+    grid.classList.add('hidden');
+    voted.classList.add('show');
+    document.getElementById('votedFor').textContent = state.myVote || '?';
+    results.classList.remove('hidden');
+    return;
+  }
+
+  voted.classList.remove('show');
+  grid.classList.remove('hidden');
+  results.classList[state.status === 'open' ? 'remove' : 'add']('hidden');
+
+  grid.innerHTML = '';
+  for (let i = 1; i <= state.optionCount; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'vote-btn';
+    btn.innerHTML = `<span class="vn">${i}</span><span class="vl">Gericht</span>`;
+    btn.onclick = () => castVote(i);
+    if (state.status !== 'open') btn.disabled = true;
+    grid.appendChild(btn);
+  }
+}
+
+function renderChart() {
+  renderChartIn('chartContainer');
+  if (state.isAdmin) renderChartIn('adminChartContainer');
+}
+
+function renderChartIn(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const maxV = Math.max(1, ...Object.values(state.votes));
+  let html = '';
+  for (let i = 1; i <= state.optionCount; i++) {
+    const v = state.votes[i] || 0;
+    const pct = maxV > 0 ? (v / maxV * 100) : 0;
+    const win = v === maxV && v > 0;
+    html += `<div class="bar-row">
+      <div class="bar-label">${i}</div>
+      <div class="bar-track">
+        <div class="bar-fill ${win ? 'winner' : ''}" style="width:${pct}%"></div>
+      </div>
+      <div class="bar-count">${v}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN ACTIONS
+// ══════════════════════════════════════════════
+async function setStatus(s) {
+  try {
+    await sbFetch('contest_settings', 'POST', { key: 'config', value: JSON.stringify({ status: s, optionCount: state.optionCount }) }, {
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+    });
+    state.status = s;
+    renderStatus(); renderVoteGrid();
+    showToast({ open: '▶ Abstimmung gestartet', closed: '⏹ Beendet', waiting: '⏸ Pausiert' }[s] || 'Status gesetzt');
+  } catch(e) { showToast('Fehler: ' + e.message); }
+}
+
+async function resetVotes() {
+  if (!confirm('Alle Stimmen wirklich löschen?')) return;
+  try {
+    await sbFetch('votes?voted_at=gte.1970-01-01', 'DELETE');
+    state.votes = {}; state.votedCount = 0;
+    for (let i = 1; i <= state.optionCount; i++) state.votes[i] = 0;
+    renderChart(); updateAdminStats();
+    showToast('🔄 Zurückgesetzt');
+  } catch(e) { showToast('Fehler: ' + e.message); }
+}
+
+function updateOptionCount(v) {
+  document.getElementById('optionVal').textContent = v;
+  state.optionCount = parseInt(v);
+  updateManualSelect();
+}
+
+async function saveOptionCount() {
+  try {
+    await sbFetch('contest_settings', 'POST', { key: 'config', value: JSON.stringify({ status: state.status, optionCount: state.optionCount }) }, {
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+    });
+    renderVoteGrid(); renderChart();
+    showToast('💾 ' + state.optionCount + ' Gerichte gespeichert');
+  } catch(e) { showToast('Fehler: ' + e.message); }
+}
+
+async function addManualVotes() {
+  const opt = parseInt(document.getElementById('manualOption').value);
+  const cnt = parseInt(document.getElementById('manualCount').value) || 1;
+  if (isNaN(opt)) { showToast('Gericht auswählen'); return; }
+  try {
+    const rows = Array.from({length: cnt}, (_, i) => ({
+      option: opt, browser_fp: 'manual_' + Date.now() + '_' + i,
+      ip_address: 'manual', session_id: 'manual_' + crypto.randomUUID(),
+      voted_at: new Date().toISOString()
+    }));
+    await sbFetch('votes', 'POST', rows, { headers: { 'Prefer': 'return=minimal' } });
+    await loadVotes(); renderChart(); updateAdminStats();
+    showToast(`➕ ${cnt} Stimme(n) für Gericht ${opt}`);
+  } catch(e) { showToast('Fehler: ' + e.message); }
+}
+
+function updateManualSelect() {
+  const sel = document.getElementById('manualOption');
+  if (!sel) return;
+  const cur = sel.value; sel.innerHTML = '';
+  for (let i = 1; i <= state.optionCount; i++) {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = 'Gericht ' + i; sel.appendChild(o);
+  }
+  if (cur) sel.value = cur;
+}
+
+function updateAdminStats() {
+  const set = (id, v) => { const e = document.getElementById(id); if(e) { e.textContent = v; e.style.transform = 'scale(1.15)'; setTimeout(() => e.style.transform = '', 200); } };
+  set('statOnline',   state.onlineCount);
+  set('statVoted',    state.votedCount);
+  set('statNotVoted', Math.max(0, state.onlineCount - state.votedCount));
+  set('statTotal',    state.votedCount);
+}
+
+function renderAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  panel.style.display = 'block';
+  panel.style.animation = 'slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both';
+  updateManualSelect(); updateAdminStats();
+  document.getElementById('optionSlider').value = state.optionCount;
+  document.getElementById('optionVal').textContent = state.optionCount;
+  // Hide admin pill
+  document.getElementById('adminBar').style.display = 'none';
+}
+
+// ── ADMIN PANEL COLLAPSE ──
+function toggleAdmin() {
+  document.getElementById('adminPanel').classList.toggle('collapsed');
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN LOGIN
+// ══════════════════════════════════════════════
+function openAdminLogin() {
+  if (state.isAdmin) {
+    const panel = document.getElementById('adminPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    return;
+  }
+  const modal = document.getElementById('adminLogin');
+  modal.classList.add('show');
+  setTimeout(() => document.getElementById('adminPwInput').focus(), 300);
+}
+
+function closeAdminLogin() {
+  document.getElementById('adminLogin').classList.remove('show');
+  document.getElementById('adminPwInput').value = '';
+  document.getElementById('pwErr').classList.remove('show');
+}
+
+function checkAdminPw() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    state.isAdmin = true;
+    closeAdminLogin();
+    renderAdminPanel();
+    // Welcome animation
+    const welcome = document.createElement('div');
+    welcome.className = 'admin-welcome';
+    welcome.innerHTML = `<div class="admin-welcome-inner"><div class="aw-icon">⚙️</div><h3>Willkommen, Admin!</h3><p>Dashboard wird geladen…</p></div>`;
+    document.body.appendChild(welcome);
+    setTimeout(() => welcome.remove(), 2200);
+  } else {
+    const err = document.getElementById('pwErr');
+    err.classList.add('show');
+    document.getElementById('adminPwInput').style.borderColor = 'var(--red)';
+    setTimeout(() => {
+      err.classList.remove('show');
+      document.getElementById('adminPwInput').style.borderColor = '';
+    }, 3000);
+  }
+}
+
+// Close sheet on backdrop click
+document.getElementById('adminLogin').addEventListener('click', function(e) {
+  if (e.target === this) closeAdminLogin();
+});
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
