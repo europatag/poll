@@ -38,13 +38,32 @@ body {
   overflow-x: hidden;
 }
 
-/* ── ORIENTATION PICKER ── */
+/* ── LAYER SYSTEM ── */
+/* All screens sit on top of each other via fixed positioning */
+/* z-index hierarchy:
+   9999 = orientPicker
+   9998 = loader
+   9990 = endedScreen
+   700+ = overlays (results, timer modal)
+   500  = toast
+   40   = admin bar
+*/
+
+/* ══════════════════════════════════════════════
+   ORIENTATION PICKER
+══════════════════════════════════════════════ */
 #orientPicker {
   position: fixed; inset: 0; z-index: 9999;
   background: var(--white);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
+  padding: 24px;
+  transition: opacity 0.4s ease;
 }
+#orientPicker.hidden-out {
+  opacity: 0; pointer-events: none;
+}
+
 .op-logo {
   font-family: 'Fraunces', serif;
   font-size: 1.1rem; font-weight: 700;
@@ -83,65 +102,71 @@ body {
 .op-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .op-btn:hover { background: #0029a0; box-shadow: 0 4px 20px rgba(0,51,153,0.3); }
 
-/* ── REAL LOADING SCREEN (after orientation pick) ── */
-#cloudLoader {
+/* ══════════════════════════════════════════════
+   UNIFIED LOADER
+══════════════════════════════════════════════ */
+#loader {
   position: fixed; inset: 0; z-index: 9998;
   background: var(--white);
   display: none;
   flex-direction: column; align-items: center; justify-content: center;
-  gap: 0;
+  gap: 0; padding: 24px;
+  transition: opacity 0.5s ease;
 }
-.cl-logo {
+#loader.active { display: flex; }
+#loader.fading { opacity: 0; }
+
+.ld-logo {
   font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700;
   color: var(--blue); display: flex; align-items: center; gap: 8px;
-  margin-bottom: 48px;
+  margin-bottom: 52px;
 }
-.cl-logo-stars { color: var(--gold); font-size: 0.65rem; letter-spacing: 3px; }
-.cl-title {
-  font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 900;
+.ld-logo-stars { color: var(--gold); font-size: 0.65rem; letter-spacing: 3px; }
+.ld-title {
+  font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 900;
   color: var(--text); margin-bottom: 6px; text-align: center;
 }
-.cl-sub { color: var(--text-mid); font-size: 0.88rem; margin-bottom: 48px; text-align: center; font-weight: 300; }
-.cl-bar-wrap {
-  width: min(320px, 80vw);
-  background: var(--blue-light);
-  border-radius: 100px; height: 6px; overflow: hidden;
-  margin-bottom: 16px;
-  border: 1px solid rgba(0,51,153,0.12);
+.ld-sub {
+  color: var(--text-mid); font-size: 0.85rem; margin-bottom: 40px;
+  text-align: center; font-weight: 300; min-height: 1.4em;
+  transition: opacity 0.25s ease;
 }
-.cl-bar-fill {
+.ld-bar-wrap {
+  width: min(300px, 80vw);
+  background: var(--blue-light);
+  border-radius: 100px; height: 4px; overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid rgba(0,51,153,0.1);
+}
+.ld-bar-fill {
   height: 100%; width: 0%;
   background: linear-gradient(90deg, var(--blue), #5580ff);
   border-radius: 100px;
-  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
 }
-.cl-step {
-  font-size: 0.78rem; color: var(--text-light); font-weight: 500;
-  letter-spacing: 0.5px; min-height: 1.2em; text-align: center;
-  transition: opacity 0.3s ease;
+.ld-pct {
+  font-family: 'Fraunces', serif; font-size: 0.8rem;
+  color: var(--blue); font-weight: 700; margin-bottom: 28px;
 }
-.cl-pct {
-  font-family: 'Fraunces', serif; font-size: 0.85rem;
-  color: var(--blue); font-weight: 700; margin-top: 4px;
-}
-.cl-cancel {
-  margin-top: 28px; background: none; border: none;
+.ld-cancel {
+  background: none; border: 1px solid var(--border);
   color: var(--text-light); font-size: 0.82rem;
   font-family: 'DM Sans', sans-serif; cursor: pointer;
-  padding: 8px 20px; border-radius: 100px;
+  padding: 8px 24px; border-radius: 100px;
   transition: all var(--transition);
-  border: 1px solid var(--border);
 }
-.cl-cancel:hover { color: var(--text); border-color: rgba(0,51,153,0.2); background: var(--blue-light); }
+.ld-cancel:hover { color: var(--text); border-color: rgba(0,51,153,0.2); background: var(--blue-light); }
 
-/* ── MAIN APP ── */
+/* ══════════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════════ */
 #app { display: none; min-height: 100vh; }
 
-/* ── PORTRAIT LAYOUT ── */
+/* Portrait */
 body.portrait #app { display: flex; flex-direction: column; max-width: 460px; margin: 0 auto; padding: 0 0 40px; }
 body.portrait header { padding: 48px 28px 28px; text-align: center; }
 
-/* ── LANDSCAPE LAYOUT ── */
+/* Landscape */
 body.landscape #app {
   display: grid; grid-template-columns: 300px 1fr;
   grid-template-rows: auto 1fr; min-height: 100vh;
@@ -267,6 +292,7 @@ header .date-chip {
   background: var(--blue-light); color: var(--blue); border-radius: 100px;
   padding: 6px 16px; font-weight: 600; font-size: 0.9rem; margin-top: 12px;
 }
+@keyframes checkDraw { from { stroke-dashoffset: 30; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
 
 /* ── TOTAL VOTES DISPLAY ── */
 .total-votes-row {
@@ -310,20 +336,21 @@ header .date-chip {
 /* ── ADMIN PANEL ── */
 #adminPanel { display: none; }
 
-.admin-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
-  display: flex; justify-content: center; padding: 12px 20px 20px;
-  pointer-events: none;
-}
-.admin-pill {
-  background: var(--text); color: rgba(255,255,255,0.7);
-  border: none; border-radius: 100px; padding: 10px 20px; font-size: 0.78rem;
+/* ── ADMIN BUTTON — unified, always fixed bottom-center ── */
+#adminFab {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 200;
+  background: var(--text); color: rgba(255,255,255,0.75);
+  border: none; border-radius: 100px;
+  padding: 10px 22px; font-size: 0.78rem;
   font-family: 'DM Sans', sans-serif; font-weight: 500; letter-spacing: 0.5px;
-  cursor: pointer; pointer-events: auto; transition: all var(--transition);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 6px;
+  cursor: pointer; transition: all var(--transition);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
 }
-.admin-pill:hover { color: #fff; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
-.admin-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+#adminFab:hover { color: #fff; box-shadow: 0 6px 28px rgba(0,0,0,0.3); transform: translateX(-50%) translateY(-2px); }
+#adminFab .fab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 
 .admin-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;
@@ -336,7 +363,7 @@ header .date-chip {
 .stat-num {
   font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900;
   line-height: 1; color: var(--text); display: block;
-  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.2s ease;
 }
 .stat-box.online .stat-num { color: var(--green); }
 .stat-box.voted-s .stat-num { color: var(--blue); }
@@ -357,31 +384,26 @@ header .date-chip {
 .btn-red { background: #fdecea; color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
 .btn-red:hover:not(:disabled) { background: var(--red); color: #fff; }
 .btn-gray { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
-.btn-gray:hover:not(:disabled) { background: var(--border); color: var(--text); }
+.btn-gray:hover:not(:disabled) { background: var(--blue-light); color: var(--text); }
 .btn-gold { background: var(--gold-light); color: var(--gold); border: 1px solid rgba(212,168,67,0.25); }
 .btn-gold:hover:not(:disabled) { background: var(--gold); color: #fff; }
 
-/* ── INLINE LOADING BUTTON ── */
-.btn.loading {
-  pointer-events: none;
-  color: transparent !important;
-}
+/* Inline loading button */
+.btn.loading { pointer-events: none; color: transparent !important; }
 .btn.loading::after {
-  content: '';
-  position: absolute;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
+  content: ''; position: absolute;
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff; border-radius: 50%;
   animation: spin 0.7s linear infinite;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
 }
-.btn-gold.loading::after,
-.btn-gray.loading::after { border-color: rgba(0,0,0,0.15); border-top-color: var(--text-mid); }
+.btn-gold.loading::after, .btn-gray.loading::after {
+  border-color: rgba(0,0,0,0.12); border-top-color: var(--text-mid);
+}
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-/* Operation overlay — replaces the crappy card-loading */
+/* ── OP OVERLAY ── */
 #opOverlay {
   position: fixed; inset: 0; z-index: 600;
   background: rgba(13,13,26,0.25); backdrop-filter: blur(4px);
@@ -396,17 +418,15 @@ header .date-chip {
 }
 @keyframes sheetIn { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .op-spinner {
-  width: 40px; height: 40px;
-  border: 3px solid var(--blue-light);
-  border-top-color: var(--blue);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  width: 36px; height: 36px;
+  border: 3px solid var(--blue-light); border-top-color: var(--blue);
+  border-radius: 50%; animation: spin 0.75s linear infinite;
   margin: 0 auto 16px;
 }
 .op-msg { font-size: 0.95rem; color: var(--text-mid); font-weight: 500; margin-bottom: 16px; }
 .op-cancel-btn {
   background: none; border: 1px solid var(--border); border-radius: 100px;
-  padding: 8px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+  padding: 7px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
   color: var(--text-mid); cursor: pointer; transition: all var(--transition);
 }
 .op-cancel-btn:hover { color: var(--red); border-color: rgba(192,57,43,0.3); }
@@ -436,7 +456,7 @@ input[type=number] { width: 70px; }
 
 /* ── ADMIN LOGIN ── */
 #adminLogin {
-  position: fixed; inset: 0; z-index: 999;
+  position: fixed; inset: 0; z-index: 9000;
   background: rgba(13,13,26,0.4); backdrop-filter: blur(12px);
   display: flex; align-items: flex-end; justify-content: center; padding: 20px;
   opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -471,7 +491,7 @@ input[type=number] { width: 70px; }
 
 /* ── ADMIN WELCOME ── */
 .admin-welcome {
-  position: fixed; inset: 0; z-index: 888;
+  position: fixed; inset: 0; z-index: 9500;
   display: flex; align-items: center; justify-content: center; pointer-events: none;
 }
 .admin-welcome-inner {
@@ -479,17 +499,24 @@ input[type=number] { width: 70px; }
   box-shadow: var(--shadow-lg); animation: adminWelcome 2s cubic-bezier(0.4,0,0.2,1) both;
 }
 @keyframes adminWelcome {
-  0% { opacity: 0; transform: scale(0.8); } 20% { opacity: 1; transform: scale(1.02); }
-  80% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.95); }
+  0% { opacity: 0; transform: scale(0.85); }
+  15% { opacity: 1; transform: scale(1.02); }
+  75% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.96); }
 }
 .admin-welcome-inner .aw-icon { font-size: 2.5rem; margin-bottom: 12px; }
 .admin-welcome-inner h3 { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
 .admin-welcome-inner p { color: var(--text-mid); font-size: 0.88rem; }
 
 /* ── ADMIN PANEL COLLAPSE ── */
-#adminPanel .admin-body { overflow: hidden; }
-#adminPanel.collapsed .admin-body { max-height: 0 !important; opacity: 0; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; }
-#adminPanel .admin-body { max-height: 2000px; opacity: 1; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease; }
+#adminPanel .admin-body {
+  overflow: hidden; max-height: 2000px; opacity: 1;
+  transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+}
+#adminPanel.collapsed .admin-body {
+  max-height: 0; opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
 .admin-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
 .admin-toggle-row .chevron {
   width: 28px; height: 28px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border);
@@ -519,14 +546,14 @@ input[type=number] { width: 70px; }
   background: var(--bg); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--border); margin-top: 8px;
 }
 .countdown-admin-row label { font-size: 0.83rem; font-weight: 600; color: var(--text-mid); }
-input[type=datetime-local], input[type=number] {
+input[type=datetime-local] {
   padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border);
   font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--white);
   transition: border-color var(--transition);
 }
 input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
 
-/* ── TIMER-END MODAL (full-screen for admin) ── */
+/* ── TIMER-END MODAL ── */
 #timerEndModal {
   position: fixed; inset: 0; z-index: 800;
   background: rgba(13,13,26,0.6); backdrop-filter: blur(16px);
@@ -542,13 +569,10 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
 @keyframes temIconBounce { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
 .tem-inner h2 { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
 .tem-inner p { color: var(--text-mid); font-size: 0.9rem; margin-bottom: 32px; }
-.tem-countdown-bar {
-  width: 100%; height: 5px; background: var(--blue-light); border-radius: 100px; overflow: hidden; margin-bottom: 28px;
-}
+.tem-countdown-bar { width: 100%; height: 5px; background: var(--blue-light); border-radius: 100px; overflow: hidden; margin-bottom: 28px; }
 .tem-countdown-bar-fill {
   height: 100%; background: linear-gradient(90deg, var(--red), #ff6b6b);
-  border-radius: 100px; width: 100%;
-  transition: width linear;
+  border-radius: 100px; width: 100%; transition: width linear;
 }
 .tem-btns { display: flex; flex-direction: column; gap: 10px; }
 .tem-btns .btn { width: 100%; padding: 16px; border-radius: 14px; font-size: 1rem; }
@@ -557,26 +581,16 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
 #resultsOverlay {
   display: none; position: fixed; inset: 0; z-index: 700;
   background: linear-gradient(160deg, #f9f9fb 0%, #eef2ff 100%);
-  overflow-y: auto; animation: overlayIn 0.7s cubic-bezier(0.4,0,0.2,1) both;
+  overflow-y: auto;
 }
-#resultsOverlay.show { display: block; }
+#resultsOverlay.show { display: block; animation: overlayIn 0.7s cubic-bezier(0.4,0,0.2,1) both; }
 @keyframes overlayIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-.results-overlay-inner { max-width: 680px; margin: 0 auto; padding: 60px 28px 80px; }
+.results-overlay-inner { max-width: 680px; margin: 0 auto; padding: 60px 28px 100px; }
 .results-overlay-header { text-align: center; margin-bottom: 48px; }
 .results-overlay-header .ro-eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
 .results-overlay-header h2 { font-family: 'Fraunces', serif; font-size: 2.6rem; font-weight: 900; color: var(--text); margin-bottom: 8px; line-height: 1.05; }
 .results-overlay-header h2 em { font-style: italic; color: var(--gold); }
 .results-overlay-header .ro-sub { font-size: 0.95rem; color: var(--text-mid); font-weight: 300; }
-
-/* Admin back button on results overlay */
-.ro-admin-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(0,0,0,0.06); color: var(--text-mid);
-  border: none; border-radius: 100px; padding: 8px 18px;
-  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
-  cursor: pointer; transition: all var(--transition); margin-bottom: 32px;
-}
-.ro-admin-btn:hover { background: var(--blue-light); color: var(--blue); }
 
 .winner-spotlight {
   background: linear-gradient(135deg, var(--gold-light) 0%, rgba(212,168,67,0.12) 100%);
@@ -611,7 +625,7 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
 
-/* ── ENDED SCREEN (for non-admins after event is over) ── */
+/* ── ENDED SCREEN ── */
 #endedScreen {
   position: fixed; inset: 0; z-index: 9990;
   background: var(--white);
@@ -623,36 +637,20 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
 .ended-icon { font-size: 3rem; margin-bottom: 20px; }
 .ended-screen-inner h2 { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
 .ended-screen-inner p { color: var(--text-mid); font-size: 0.95rem; font-weight: 300; max-width: 320px; }
-.ended-admin-btn {
-  margin-top: 32px; background: var(--bg); color: var(--text-mid);
-  border: 1px solid var(--border); border-radius: 100px; padding: 10px 24px;
-  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer;
-  transition: all var(--transition); display: flex; align-items: center; gap: 6px;
-}
-.ended-admin-btn:hover { background: var(--blue-light); color: var(--blue); border-color: var(--blue-mid); }
 
 /* ── TOAST ── */
 #toast {
   position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px);
   background: var(--text); color: #fff; padding: 11px 24px; border-radius: 100px;
   font-size: 0.88rem; font-weight: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  z-index: 500; pointer-events: none; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); white-space: nowrap;
-  display: flex; align-items: center; gap: 8px;
+  z-index: 9999; pointer-events: none; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap; display: flex; align-items: center; gap: 8px;
 }
 #toast.show { transform: translateX(-50%) translateY(0); }
 
 /* ── MISC ── */
 .hidden { display: none !important; }
 
-@media (max-width: 600px) {
-  .vote-grid { grid-template-columns: repeat(4, 1fr); }
-  .admin-grid { grid-template-columns: repeat(2, 1fr); }
-  .results-overlay-header h2 { font-size: 2rem; }
-  .countdown-display { flex-wrap: wrap; }
-  .tem-inner { padding: 36px 24px; }
-}
-
-/* Seconds countdown input */
 .cd-mode-row {
   display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
 }
@@ -662,14 +660,25 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   cursor: pointer; transition: all var(--transition); font-family: 'DM Sans', sans-serif;
 }
 .cd-mode-btn.active { background: var(--blue-light); border-color: var(--blue); color: var(--blue); }
-.cd-seconds-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--bg); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--border); margin-top: 0; }
+.cd-seconds-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--bg); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--border);
+}
 .cd-seconds-row label { font-size: 0.83rem; font-weight: 600; color: var(--text-mid); }
 .cd-seconds-row input[type=number] { width: 90px; }
+
+@media (max-width: 600px) {
+  .vote-grid { grid-template-columns: repeat(4, 1fr); }
+  .admin-grid { grid-template-columns: repeat(2, 1fr); }
+  .results-overlay-header h2 { font-size: 2rem; }
+  .countdown-display { flex-wrap: wrap; }
+  .tem-inner { padding: 36px 24px; }
+}
 </style>
 </head>
 <body>
 
-<!-- ── ORIENTATION PICKER ── -->
+<!-- ══ ORIENTATION PICKER ══ -->
 <div id="orientPicker">
   <div class="op-logo">
     <span class="op-stars">★★★★★★</span>
@@ -693,24 +702,23 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   <button class="op-btn" id="opContinue" onclick="confirmOrient()">Weiter →</button>
 </div>
 
-<!-- ── CLOUD LOADING SCREEN ── -->
-<div id="cloudLoader">
-  <div class="cl-logo">
-    <span class="cl-logo-stars">★★★★★★</span>
+<!-- ══ UNIFIED LOADER ══ -->
+<div id="loader">
+  <div class="ld-logo">
+    <span class="ld-logo-stars">★★★★★★</span>
     AEG Europatag
-    <span class="cl-logo-stars">★★★★★★</span>
+    <span class="ld-logo-stars">★★★★★★</span>
   </div>
-  <div class="cl-title">Verbindung wird hergestellt</div>
-  <div class="cl-sub">Abstimmung wird geladen…</div>
-  <div class="cl-bar-wrap">
-    <div class="cl-bar-fill" id="clBarFill"></div>
+  <div class="ld-title">Wird geladen</div>
+  <div class="ld-sub" id="ldSub">Verbindung wird hergestellt…</div>
+  <div class="ld-bar-wrap">
+    <div class="ld-bar-fill" id="ldBarFill"></div>
   </div>
-  <div class="cl-pct" id="clPct">0%</div>
-  <div class="cl-step" id="clStep">Initialisierung…</div>
-  <button class="cl-cancel" onclick="cancelLoading()">Abbrechen</button>
+  <div class="ld-pct" id="ldPct">0 %</div>
+  <button class="ld-cancel" id="ldCancel" onclick="cancelLoading()">← Zurück</button>
 </div>
 
-<!-- ── ENDED SCREEN (for users, when already closed on load) ── -->
+<!-- ══ ENDED SCREEN ══ -->
 <div id="endedScreen">
   <div class="ended-screen-inner">
     <div class="ended-stars">
@@ -720,13 +728,10 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
     <div class="ended-icon">🏁</div>
     <h2>Abstimmung beendet</h2>
     <p>Die Abstimmung für den AEG Europatag Food Contest ist bereits abgeschlossen. Vielen Dank für deine Teilnahme!</p>
-    <button class="ended-admin-btn" onclick="openAdminLogin()">
-      <span>⚙️</span> Admin-Zugang
-    </button>
   </div>
 </div>
 
-<!-- ── MAIN APP ── -->
+<!-- ══ MAIN APP ══ -->
 <div id="app">
   <header>
     <div class="eu-flag-bar">
@@ -764,7 +769,10 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
       <div class="vote-grid" id="voteGrid"></div>
       <div class="voted-state" id="votedState">
         <div class="voted-circle">
-          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="30" stroke-dashoffset="30" style="animation: checkDraw 0.5s ease 0.3s both">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none"
+            stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            stroke-dasharray="30" stroke-dashoffset="30"
+            style="animation:checkDraw 0.5s ease 0.3s both">
             <polyline points="7,17 14,24 27,10"/>
           </svg>
         </div>
@@ -773,9 +781,6 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
         <div class="vote-badge">Gericht <strong id="votedFor" style="margin-left:4px"></strong></div>
       </div>
     </div>
-    <style>
-      @keyframes checkDraw { from { stroke-dashoffset: 30; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
-    </style>
 
     <!-- RESULTS CARD (shown while open after voting) -->
     <div class="card hidden" id="resultsCard">
@@ -811,6 +816,7 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
         <span class="section-label">Abstimmung steuern</span>
         <div class="admin-controls">
           <button class="btn btn-blue" id="btnStart" onclick="setStatus('open')">▶ Starten</button>
+          <button class="btn btn-gold" id="btnWaiting" onclick="setStatus('waiting')">⏸ Pausieren</button>
           <button class="btn btn-red" id="btnEnd" onclick="setStatus('closed')">⏹ Beenden</button>
           <button class="btn btn-gray" id="btnReset" onclick="resetVotes()">🔄 Reset</button>
         </div>
@@ -863,11 +869,11 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
       </div>
     </div>
 
-    <div style="height:60px"></div>
+    <div style="height:80px"></div>
   </main>
 </div>
 
-<!-- ── RESULTS OVERLAY ── -->
+<!-- ══ RESULTS OVERLAY ══ -->
 <div id="resultsOverlay">
   <div class="results-overlay-inner">
     <div class="results-overlay-header">
@@ -878,10 +884,6 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
         <div class="ro-eu-star"></div><div class="ro-eu-star"></div>
         <div class="ro-eu-star"></div><div class="ro-eu-star"></div>
         <div class="ro-eu-star"></div><div class="ro-eu-star"></div>
-      </div>
-      <!-- Admin back button (only visible for admins) -->
-      <div id="roAdminBtnWrap" style="display:none">
-        <button class="ro-admin-btn" onclick="openAdminLogin()">⚙️ Zum Admin-Dashboard</button>
       </div>
       <div class="ro-eyebrow">AEG Europatag · Food Contest</div>
       <h2>Ergebnis<br><em>steht fest!</em></h2>
@@ -907,7 +909,7 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   </div>
 </div>
 
-<!-- ── TIMER END MODAL (admin only) ── -->
+<!-- ══ TIMER END MODAL ══ -->
 <div id="timerEndModal">
   <div class="tem-inner">
     <div class="tem-icon">⏰</div>
@@ -923,7 +925,7 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   </div>
 </div>
 
-<!-- Operation overlay (replaces card loading) -->
+<!-- ══ OP OVERLAY ══ -->
 <div id="opOverlay">
   <div class="op-sheet">
     <div class="op-spinner"></div>
@@ -932,22 +934,21 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   </div>
 </div>
 
-<!-- Admin bottom bar -->
-<div class="admin-bar" id="adminBar">
-  <button class="admin-pill" onclick="openAdminLogin()">
-    <span class="dot"></span>
-    Admin-Zugang
-  </button>
-</div>
+<!-- ══ UNIFIED ADMIN FAB (always visible, always same place) ══ -->
+<button id="adminFab" onclick="handleAdminFab()">
+  <span class="fab-dot"></span>
+  Admin-Zugang
+</button>
 
-<!-- Admin Login Sheet -->
+<!-- ══ ADMIN LOGIN ══ -->
 <div id="adminLogin">
   <div class="login-sheet">
     <div class="login-handle"></div>
     <h2>Admin-Zugang</h2>
     <p>Bitte Passwort eingeben</p>
     <div class="pw-input-wrap">
-      <input type="password" id="adminPwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkAdminPw()">
+      <input type="password" id="adminPwInput" placeholder="••••••••••"
+        onkeydown="if(event.key==='Enter')checkAdminPw()">
     </div>
     <div class="pw-error" id="pwErr">Falsches Passwort – bitte erneut versuchen</div>
     <button class="btn btn-blue" id="btnLoginSubmit" onclick="checkAdminPw()">Einloggen</button>
@@ -955,7 +956,7 @@ input[type=datetime-local]:focus { outline: none; border-color: var(--blue); }
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ══ TOAST ══ -->
 <div id="toast"></div>
 
 <script>
@@ -981,67 +982,61 @@ function selectOrient(o) {
   selectedOrient = o;
   document.querySelectorAll('.op-card').forEach(c => c.classList.remove('selected'));
   document.getElementById(o === 'portrait' ? 'opPortrait' : 'opLandscape').classList.add('selected');
-  const btn = document.getElementById('opContinue');
-  btn.classList.add('visible');
+  document.getElementById('opContinue').classList.add('visible');
 }
 
 function confirmOrient() {
   if (!selectedOrient) return;
   document.body.classList.add(selectedOrient);
+
+  // Fade picker out, show loader immediately (app stays hidden)
   const picker = document.getElementById('orientPicker');
-  picker.style.transition = 'opacity 0.4s ease';
-  picker.style.opacity = '0';
+  picker.classList.add('hidden-out');
+
+  // Show loader right after picker fades
   setTimeout(() => {
     picker.style.display = 'none';
-    showCloudLoader();
+    showLoader();
   }, 420);
 }
 
 // ══════════════════════════════════════════════
-//  CLOUD LOADING SCREEN
+//  LOADER
 // ══════════════════════════════════════════════
-const loadSteps = [
-  { pct: 10, msg: 'Verbindung herstellen…' },
-  { pct: 30, msg: 'Konfiguration laden…' },
-  { pct: 55, msg: 'Stimmen abrufen…' },
-  { pct: 75, msg: 'Session prüfen…' },
-  { pct: 90, msg: 'Benutzer-Status laden…' },
-  { pct: 100, msg: 'Fertig!' },
-];
-
-function showCloudLoader() {
-  const loader = document.getElementById('cloudLoader');
-  loader.style.display = 'flex';
-  setLoadProgress(0, 'Initialisierung…');
+function showLoader() {
+  const loader = document.getElementById('loader');
+  loader.classList.add('active');
+  loader.classList.remove('fading');
+  setLoadProgress(0, 'Verbindung wird hergestellt…');
   initApp();
 }
 
 function setLoadProgress(pct, msg) {
-  document.getElementById('clBarFill').style.width = pct + '%';
-  document.getElementById('clPct').textContent = pct + '%';
-  document.getElementById('clStep').textContent = msg;
+  document.getElementById('ldBarFill').style.width = pct + '%';
+  document.getElementById('ldPct').textContent = pct + ' %';
+  const sub = document.getElementById('ldSub');
+  sub.style.opacity = '0';
+  setTimeout(() => {
+    sub.textContent = msg;
+    sub.style.opacity = '1';
+  }, 120);
 }
 
 function cancelLoading() {
   if (loadingAbortController) loadingAbortController.abort();
-  // Go back to orientation picker
-  const loader = document.getElementById('cloudLoader');
-  loader.style.transition = 'opacity 0.3s ease';
-  loader.style.opacity = '0';
+  const loader = document.getElementById('loader');
+  loader.classList.add('fading');
   setTimeout(() => {
-    loader.style.display = 'none';
-    loader.style.opacity = '';
-    const picker = document.getElementById('orientPicker');
-    picker.style.display = 'flex';
-    picker.style.opacity = '0';
-    picker.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => { picker.style.opacity = '1'; }, 10);
-    // Reset orient
+    loader.classList.remove('active', 'fading');
+    // Reset and show picker again
     document.body.classList.remove('portrait', 'landscape');
     selectedOrient = null;
     document.querySelectorAll('.op-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('opContinue').classList.remove('visible');
-  }, 320);
+    const picker = document.getElementById('orientPicker');
+    picker.style.display = 'flex';
+    picker.classList.remove('hidden-out');
+  }, 500);
 }
 
 async function initApp() {
@@ -1049,62 +1044,65 @@ async function initApp() {
   const signal = loadingAbortController.signal;
 
   try {
-    setLoadProgress(10, 'Verbindung herstellen…');
-    await sleep(200, signal);
+    setLoadProgress(10, 'Verbindung wird hergestellt…');
+    await sleep(180, signal);
 
-    setLoadProgress(30, 'Konfiguration laden…');
+    setLoadProgress(28, 'Konfiguration laden…');
     await loadSettings(signal);
-    await sleep(150, signal);
+    await sleep(120, signal);
 
-    setLoadProgress(55, 'Stimmen abrufen…');
+    setLoadProgress(52, 'Stimmen abrufen…');
     await loadVotes(signal);
-    await sleep(150, signal);
+    await sleep(100, signal);
 
-    setLoadProgress(75, 'Session prüfen…');
+    setLoadProgress(70, 'Session prüfen…');
     await checkAlreadyVoted(signal);
     await sleep(100, signal);
 
-    setLoadProgress(90, 'Benutzer-Status laden…');
+    setLoadProgress(85, 'Online-Status synchronisieren…');
     await pingOnline(signal);
-    await sleep(200, signal);
+    await sleep(150, signal);
 
     setLoadProgress(100, 'Fertig!');
-    await sleep(350, signal);
+    await sleep(380, signal);
 
-    hideCloudLoader();
+    hideLoaderAndReveal();
   } catch(e) {
     if (e.name === 'AbortError') return;
-    // Even on error, proceed (graceful degradation)
+    // Graceful degradation — still show app
     setLoadProgress(100, 'Weiter ohne Verbindung…');
-    await sleep(400);
-    hideCloudLoader();
+    await sleep(500);
+    hideLoaderAndReveal();
   }
 }
 
-function hideCloudLoader() {
-  const loader = document.getElementById('cloudLoader');
-  loader.style.transition = 'opacity 0.5s ease';
-  loader.style.opacity = '0';
+function hideLoaderAndReveal() {
+  const loader = document.getElementById('loader');
+  loader.classList.add('fading');
   setTimeout(() => {
-    loader.style.display = 'none';
-    loader.style.opacity = '';
+    loader.classList.remove('active', 'fading');
 
-    // If status is closed and user is not admin → show ended screen
+    // Decide what to show
     if (state.status === 'closed' && !state.isAdmin) {
       document.getElementById('endedScreen').classList.add('show');
       return;
     }
 
-    const appDisplay = selectedOrient === 'portrait' ? 'flex' : 'grid';
+    const appDisplay = selectedOrient === 'landscape' ? 'grid' : 'flex';
     document.getElementById('app').style.display = appDisplay;
 
     renderStatus();
     renderVoteGrid();
     renderChart();
-    renderResultsOverlay();
-    if (state.isAdmin) renderAdminPanel();
 
-    if (state.status === 'closed') showResultsOverlay();
+    if (state.isAdmin) {
+      renderAdminPanel();
+    }
+
+    if (state.status === 'closed') {
+      renderResultsOverlay();
+      showResultsOverlay();
+    }
 
     startCountdownDisplay();
     startPolling();
@@ -1114,7 +1112,12 @@ function hideCloudLoader() {
 function sleep(ms, signal) {
   return new Promise((resolve, reject) => {
     const t = setTimeout(resolve, ms);
-    if (signal) signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')); });
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        clearTimeout(t);
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    }
   });
 }
 
@@ -1157,9 +1160,9 @@ let state = {
   resetToken: null,
 };
 
-let pollInterval = null;
+let pollInterval   = null;
 let countdownInterval = null;
-let currentOperation = null; // AbortController for current admin op
+let currentOperation = null;
 
 function getSessionId() {
   let id = localStorage.getItem('aegSessionId');
@@ -1168,7 +1171,11 @@ function getSessionId() {
 }
 
 function getFingerprint() {
-  const str = [navigator.userAgent, navigator.language, screen.width, screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone].join('|');
+  const str = [
+    navigator.userAgent, navigator.language,
+    screen.width, screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  ].join('|');
   let h = 0;
   for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
   return Math.abs(h).toString(36);
@@ -1182,20 +1189,20 @@ async function loadSettings(signal) {
     const rows = await sbFetch('contest_settings?key=eq.config&select=value', 'GET', null, {}, signal);
     if (rows && rows.length) {
       const cfg = JSON.parse(rows[0].value);
-      state.status = cfg.status || 'waiting';
-      state.optionCount = cfg.optionCount || 10;
+      state.status       = cfg.status      || 'waiting';
+      state.optionCount  = cfg.optionCount || 10;
       state.countdownEnd = cfg.countdownEnd || null;
       const newResetToken = cfg.resetToken || null;
       if (newResetToken && newResetToken !== state.resetToken) {
         if (state.resetToken !== null) {
-          state.hasVoted = false; state.myVote = null;
-          const fp = getFingerprint();
-          localStorage.removeItem('aegVoted_' + fp);
+          state.hasVoted = false;
+          state.myVote   = null;
+          localStorage.removeItem('aegVoted_' + getFingerprint());
         }
         state.resetToken = newResetToken;
       }
     }
-  } catch(e) { if (e.name === 'AbortError') throw e; }
+  } catch(e) { if (e && e.name === 'AbortError') throw e; }
 }
 
 async function loadVotes(signal) {
@@ -1204,34 +1211,37 @@ async function loadVotes(signal) {
     const counts = {};
     for (let i = 1; i <= state.optionCount; i++) counts[i] = 0;
     if (rows) rows.forEach(r => { if (counts[r.option] !== undefined) counts[r.option]++; });
-    state.votes = counts;
+    state.votes      = counts;
     state.votedCount = rows ? rows.length : 0;
-  } catch(e) { if (e.name === 'AbortError') throw e; }
+  } catch(e) { if (e && e.name === 'AbortError') throw e; }
 }
 
 async function checkAlreadyVoted(signal) {
-  const fp = getFingerprint();
+  const fp     = getFingerprint();
   const stored = localStorage.getItem('aegVoted_' + fp);
   if (stored) { state.hasVoted = true; state.myVote = parseInt(stored); return; }
   try {
     const rows = await sbFetch(`votes?browser_fp=eq.${fp}&select=option`, 'GET', null, {}, signal);
     if (rows && rows.length) {
-      state.hasVoted = true; state.myVote = rows[0].option;
+      state.hasVoted = true;
+      state.myVote   = rows[0].option;
       localStorage.setItem('aegVoted_' + fp, rows[0].option);
     }
-  } catch(e) { if (e.name === 'AbortError') throw e; }
+  } catch(e) { if (e && e.name === 'AbortError') throw e; }
 }
 
 async function pingOnline(signal) {
   try {
-    const now = new Date().toISOString();
+    const now    = new Date().toISOString();
     const cutoff = new Date(Date.now() - 30000).toISOString();
-    await sbFetch('presence', 'POST', { session_id: state.sessionId, last_seen: now }, {
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
-    }, signal);
+    await sbFetch('presence', 'POST',
+      { session_id: state.sessionId, last_seen: now },
+      { headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' } },
+      signal
+    );
     const rows = await sbFetch(`presence?last_seen=gte.${cutoff}&select=session_id`, 'GET', null, {}, signal);
     state.onlineCount = rows ? rows.length : 0;
-  } catch(e) { if (e.name === 'AbortError') throw e; }
+  } catch(e) { if (e && e.name === 'AbortError') throw e; }
 }
 
 // ══════════════════════════════════════════════
@@ -1240,19 +1250,24 @@ async function pingOnline(signal) {
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
-    const prevStatus = state.status;
+    const prevStatus     = state.status;
     const prevVotedCount = state.votedCount;
+
     await loadVotes();
     await loadSettings();
     await pingOnline();
 
-    if (prevStatus !== 'closed' && state.status === 'closed') showResultsOverlay();
-    if (prevStatus === 'closed' && state.status !== 'closed') hideResultsOverlay();
+    if (prevStatus !== 'closed' && state.status === 'closed') {
+      renderResultsOverlay();
+      showResultsOverlay();
+    }
+    if (prevStatus === 'closed' && state.status !== 'closed') {
+      hideResultsOverlay();
+    }
 
     renderStatus();
     renderVoteGrid();
     renderChart();
-    renderResultsOverlay();
     if (state.isAdmin) updateAdminStats();
     if (prevVotedCount !== state.votedCount) bumpTotalCount();
   }, 3000);
@@ -1262,29 +1277,43 @@ function startPolling() {
 //  VOTE
 // ══════════════════════════════════════════════
 async function castVote(option, btn) {
-  if (state.hasVoted) { showToast('Du hast bereits abgestimmt!'); return; }
+  if (state.hasVoted)          { showToast('Du hast bereits abgestimmt!'); return; }
   if (state.status !== 'open') { showToast('Die Abstimmung ist gerade nicht geöffnet.'); return; }
   if (btn) btn.classList.add('clicking');
 
   const fp = getFingerprint();
   let ip = 'unknown';
-  try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); ip = d.ip; } catch(e) {}
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    const d = await r.json();
+    ip = d.ip;
+  } catch(e) {}
 
   try {
     await sbFetch('votes', 'POST', {
-      option, browser_fp: fp, ip_address: ip,
-      session_id: state.sessionId, voted_at: new Date().toISOString()
+      option,
+      browser_fp: fp,
+      ip_address: ip,
+      session_id: state.sessionId,
+      voted_at: new Date().toISOString()
     }, { headers: { 'Prefer': 'return=minimal' } });
-    state.hasVoted = true; state.myVote = option;
+
+    state.hasVoted = true;
+    state.myVote   = option;
     localStorage.setItem('aegVoted_' + fp, option);
     await loadVotes();
-    renderVoteGrid(); renderChart(); bumpTotalCount();
+    renderVoteGrid();
+    renderChart();
+    bumpTotalCount();
     showToast('✅ Stimme abgegeben für Gericht ' + option);
   } catch(e) {
     if (btn) btn.classList.remove('clicking');
     if (e.message && (e.message.includes('duplicate') || e.message.includes('unique'))) {
-      state.hasVoted = true; showToast('Du hast bereits abgestimmt!');
-    } else { showToast('Fehler – bitte erneut versuchen'); }
+      state.hasVoted = true;
+      showToast('Du hast bereits abgestimmt!');
+    } else {
+      showToast('Fehler – bitte erneut versuchen');
+    }
   }
 }
 
@@ -1298,7 +1327,8 @@ function renderStatus() {
     waiting: '<span class="status-badge waiting"><span class="status-dot"></span>Noch nicht gestartet</span>'
   };
   const html = labels[state.status] || labels.waiting;
-  document.getElementById('statusBadge').innerHTML = html;
+  const sb = document.getElementById('statusBadge');
+  if (sb) sb.innerHTML = html;
   const hs = document.getElementById('headerStatus');
   if (hs) hs.innerHTML = html;
 }
@@ -1314,6 +1344,7 @@ function renderVoteGrid() {
     results.classList.add('hidden');
     return;
   }
+
   if (state.hasVoted) {
     grid.classList.add('hidden');
     voted.classList.add('show');
@@ -1321,6 +1352,7 @@ function renderVoteGrid() {
     results.classList.remove('hidden');
     return;
   }
+
   voted.classList.remove('show');
   grid.classList.remove('hidden');
   results.classList[state.status === 'open' ? 'remove' : 'add']('hidden');
@@ -1353,7 +1385,7 @@ function renderChartIn(id) {
     const win = v === maxV && v > 0;
     html += `<div class="bar-row">
       <div class="bar-label">${i}</div>
-      <div class="bar-track"><div class="bar-fill ${win ? 'winner' : ''}" style="width:${pct}%"></div></div>
+      <div class="bar-track"><div class="bar-fill${win ? ' winner' : ''}" style="width:${pct}%"></div></div>
       <div class="bar-count">${v}</div>
     </div>`;
   }
@@ -1371,7 +1403,9 @@ function bumpTotalCount() {
   ['totalVotesDisplay','adminTotalDisplay','roTotalVotes'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
     setTimeout(() => el.classList.remove('bump'), 400);
   });
 }
@@ -1380,82 +1414,73 @@ function renderResultsOverlay() {
   renderChartIn('overlayChartContainer');
   let winnerNum = null, winnerVotes = 0;
   for (let i = 1; i <= state.optionCount; i++) {
-    if ((state.votes[i] || 0) > winnerVotes) { winnerVotes = state.votes[i] || 0; winnerNum = i; }
+    if ((state.votes[i] || 0) > winnerVotes) {
+      winnerVotes = state.votes[i] || 0;
+      winnerNum   = i;
+    }
   }
   const wn = document.getElementById('winnerNum');
   const wv = document.getElementById('winnerVotes');
   if (wn) wn.textContent = winnerNum ? `Gericht ${winnerNum}` : '–';
-  if (wv) wv.innerHTML = winnerVotes > 0 ? `<strong>${winnerVotes}</strong> Stimme${winnerVotes !== 1 ? 'n' : ''}` : '';
-  // Show admin back button if admin
-  const roAdminWrap = document.getElementById('roAdminBtnWrap');
-  if (roAdminWrap) roAdminWrap.style.display = state.isAdmin ? 'block' : 'none';
+  if (wv) wv.innerHTML   = winnerVotes > 0
+    ? `<strong>${winnerVotes}</strong> Stimme${winnerVotes !== 1 ? 'n' : ''}` : '';
   updateTotalDisplay();
 }
 
 function showResultsOverlay() {
-  const ov = document.getElementById('resultsOverlay');
-  ov.classList.add('show');
   renderResultsOverlay();
+  document.getElementById('resultsOverlay').classList.add('show');
 }
 
 function hideResultsOverlay() {
   const ov = document.getElementById('resultsOverlay');
   ov.style.transition = 'opacity 0.5s ease';
-  ov.style.opacity = '0';
+  ov.style.opacity    = '0';
   setTimeout(() => {
     ov.classList.remove('show');
-    ov.style.opacity = ''; ov.style.transition = '';
+    ov.style.opacity = '';
+    ov.style.transition = '';
   }, 500);
 }
 
 // ══════════════════════════════════════════════
-//  OPERATION OVERLAY (replaces card loading)
+//  OP OVERLAY
 // ══════════════════════════════════════════════
 function showOpOverlay(msg) {
   document.getElementById('opMsg').textContent = msg || 'Bitte warten…';
   document.getElementById('opOverlay').classList.add('show');
 }
-
 function hideOpOverlay() {
   document.getElementById('opOverlay').classList.remove('show');
 }
-
 function cancelOperation() {
-  if (currentOperation) {
-    currentOperation.abort();
-    currentOperation = null;
-  }
+  if (currentOperation) { currentOperation.abort(); currentOperation = null; }
   hideOpOverlay();
   showToast('Vorgang abgebrochen');
 }
-
 async function withOp(msg, fn) {
   currentOperation = new AbortController();
   showOpOverlay(msg);
   try {
     await fn(currentOperation.signal);
   } catch(e) {
-    if (e.name !== 'AbortError') showToast('Fehler: ' + (e.message || e));
+    if (e && e.name !== 'AbortError') showToast('Fehler: ' + (e.message || e));
   } finally {
     hideOpOverlay();
     currentOperation = null;
   }
 }
-
-// Button loading helper
 function setBtnLoading(id, loading) {
   const btn = document.getElementById(id);
   if (!btn) return;
-  if (loading) btn.classList.add('loading');
-  else btn.classList.remove('loading');
+  loading ? btn.classList.add('loading') : btn.classList.remove('loading');
 }
 
 // ══════════════════════════════════════════════
 //  COUNTDOWN
 // ══════════════════════════════════════════════
-let cdMode = 'date';
+let cdMode          = 'date';
 let timerEndHandled = false;
-let timerAutoEndTimeout = null;
 
 function setCdMode(mode) {
   cdMode = mode;
@@ -1480,7 +1505,6 @@ function tickCountdown() {
   const diff = new Date(state.countdownEnd) - Date.now();
   if (diff <= 0) {
     wrap.classList.remove('visible');
-    // Admin gets the modal
     if (state.isAdmin && !timerEndHandled && state.status === 'open') {
       timerEndHandled = true;
       showTimerEndModal();
@@ -1492,9 +1516,9 @@ function tickCountdown() {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  document.getElementById('cdHN').textContent = String(h).padStart(2, '0');
-  document.getElementById('cdMN').textContent = String(m).padStart(2, '0');
-  document.getElementById('cdSN').textContent = String(s).padStart(2, '0');
+  document.getElementById('cdHN').textContent = String(h).padStart(2,'0');
+  document.getElementById('cdMN').textContent = String(m).padStart(2,'0');
+  document.getElementById('cdSN').textContent = String(s).padStart(2,'0');
   const urgent = diff < 60000;
   ['cdH','cdM','cdS'].forEach(id => {
     document.getElementById(id).classList.toggle('countdown-urgent', urgent);
@@ -1503,7 +1527,7 @@ function tickCountdown() {
 
 // ── TIMER END MODAL ──
 let temCountdown = 5;
-let temInterval = null;
+let temInterval  = null;
 
 function showTimerEndModal() {
   const modal = document.getElementById('timerEndModal');
@@ -1512,19 +1536,14 @@ function showTimerEndModal() {
   const fill = document.getElementById('temBarFill');
   fill.style.transition = 'none';
   fill.style.width = '100%';
-
-  // Start 5s auto-end bar
   setTimeout(() => {
     fill.style.transition = `width ${temCountdown}s linear`;
     fill.style.width = '0%';
   }, 50);
-
+  if (temInterval) clearInterval(temInterval);
   temInterval = setInterval(() => {
     temCountdown--;
-    if (temCountdown <= 0) {
-      clearInterval(temInterval);
-      timerModalEnd();
-    }
+    if (temCountdown <= 0) { clearInterval(temInterval); timerModalEnd(); }
   }, 1000);
 }
 
@@ -1537,9 +1556,8 @@ function timerModalEnd() {
 function timerModalContinue() {
   clearInterval(temInterval);
   document.getElementById('timerEndModal').classList.remove('show');
-  // Clear the countdown so it doesn't fire again
-  state.countdownEnd = null;
-  timerEndHandled = false;
+  state.countdownEnd  = null;
+  timerEndHandled     = false;
   saveConfig();
   showToast('▶ Abstimmung läuft weiter');
 }
@@ -1549,40 +1567,58 @@ function timerModalContinue() {
 // ══════════════════════════════════════════════
 async function saveConfig(extra = {}) {
   const cfg = {
-    status: state.status, optionCount: state.optionCount,
-    countdownEnd: state.countdownEnd || null, resetToken: state.resetToken, ...extra
+    status:       state.status,
+    optionCount:  state.optionCount,
+    countdownEnd: state.countdownEnd || null,
+    resetToken:   state.resetToken,
+    ...extra
   };
-  await sbFetch('contest_settings', 'POST', { key: 'config', value: JSON.stringify(cfg) }, {
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
-  });
+  await sbFetch('contest_settings', 'POST',
+    { key: 'config', value: JSON.stringify(cfg) },
+    { headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' } }
+  );
 }
 
 async function setStatus(s) {
-  await withOp(s === 'open' ? 'Abstimmung wird gestartet…' : s === 'closed' ? 'Abstimmung wird beendet…' : 'Status wird gesetzt…', async () => {
+  const msgs = { open: 'Abstimmung wird gestartet…', closed: 'Abstimmung wird beendet…', waiting: 'Status wird gesetzt…' };
+  const toasts = { open: '▶ Abstimmung gestartet', closed: '⏹ Abstimmung beendet', waiting: '⏸ Abstimmung pausiert' };
+  await withOp(msgs[s] || 'Bitte warten…', async () => {
     state.status = s;
     await saveConfig({ status: s });
-    renderStatus(); renderVoteGrid();
-    if (s === 'closed') showResultsOverlay();
+    renderStatus();
+    renderVoteGrid();
+    if (s === 'closed') { renderResultsOverlay(); showResultsOverlay(); }
     if (s !== 'closed') hideResultsOverlay();
-    showToast({ open: '▶ Abstimmung gestartet', closed: '⏹ Beendet' }[s] || 'Status gesetzt');
+    showToast(toasts[s] || 'Status gesetzt');
   });
 }
 
 async function resetVotes() {
-  if (!confirm('Alle Stimmen löschen und neue Abstimmungsrunde starten?\nAlle Geräte können danach erneut abstimmen.')) return;
+  if (!confirm('Alle Stimmen löschen?\nAlle Geräte können danach erneut abstimmen.\n\nStatus wird auf "Noch nicht gestartet" gesetzt.')) return;
   await withOp('Stimmen werden zurückgesetzt…', async () => {
     await sbFetch('votes?voted_at=gte.1970-01-01', 'DELETE');
-    state.votes = {}; state.votedCount = 0;
+
+    // Reset local state
+    state.votes      = {};
+    state.votedCount = 0;
     for (let i = 1; i <= state.optionCount; i++) state.votes[i] = 0;
-    const newToken = crypto.randomUUID();
+
+    const newToken   = crypto.randomUUID();
     state.resetToken = newToken;
-    state.hasVoted = false; state.myVote = null;
-    const fp = getFingerprint();
-    localStorage.removeItem('aegVoted_' + fp);
-    await saveConfig({ resetToken: newToken });
-    renderChart(); renderVoteGrid(); updateAdminStats();
+    state.hasVoted   = false;
+    state.myVote     = null;
+    state.status     = 'waiting'; // ← status resets to waiting, not open
+    localStorage.removeItem('aegVoted_' + getFingerprint());
+
+    await saveConfig({ resetToken: newToken, status: 'waiting' });
+
+    renderStatus();
+    renderChart();
+    renderVoteGrid();
+    updateAdminStats();
     hideResultsOverlay();
-    showToast('🔄 Zurückgesetzt – alle können neu abstimmen');
+
+    showToast('🔄 Zurückgesetzt – Status: Noch nicht gestartet');
   });
 }
 
@@ -1594,8 +1630,13 @@ function updateOptionCount(v) {
 
 async function saveOptionCount() {
   await withOp('Anzahl Gerichte wird gespeichert…', async () => {
+    // Rebuild votes object to match new count
+    const newVotes = {};
+    for (let i = 1; i <= state.optionCount; i++) newVotes[i] = state.votes[i] || 0;
+    state.votes = newVotes;
     await saveConfig();
-    renderVoteGrid(); renderChart();
+    renderVoteGrid();
+    renderChart();
     showToast('💾 ' + state.optionCount + ' Gerichte gespeichert');
   });
 }
@@ -1605,13 +1646,17 @@ async function addManualVotes() {
   const cnt = parseInt(document.getElementById('manualCount').value) || 1;
   if (isNaN(opt)) { showToast('Gericht auswählen'); return; }
   await withOp(`${cnt} Stimme(n) werden für Gericht ${opt} hinzugefügt…`, async (signal) => {
-    const rows = Array.from({length: cnt}, (_, i) => ({
-      option: opt, browser_fp: 'manual_' + Date.now() + '_' + i,
-      ip_address: 'manual', session_id: 'manual_' + crypto.randomUUID(),
-      voted_at: new Date().toISOString()
+    const rows = Array.from({ length: cnt }, (_, i) => ({
+      option:     opt,
+      browser_fp: 'manual_' + Date.now() + '_' + i,
+      ip_address: 'manual',
+      session_id: 'manual_' + crypto.randomUUID(),
+      voted_at:   new Date().toISOString()
     }));
     await sbFetch('votes', 'POST', rows, { headers: { 'Prefer': 'return=minimal' } }, signal);
-    await loadVotes(signal); renderChart(); updateAdminStats();
+    await loadVotes(signal);
+    renderChart();
+    updateAdminStats();
     showToast(`➕ ${cnt} Stimme(n) für Gericht ${opt}`);
   });
 }
@@ -1619,7 +1664,7 @@ async function addManualVotes() {
 async function saveCountdown() {
   const val = document.getElementById('countdownInput').value;
   if (!val) { showToast('Bitte Datum/Zeit auswählen'); return; }
-  timerEndHandled = false;
+  timerEndHandled    = false;
   state.countdownEnd = new Date(val).toISOString();
   await withOp('Countdown wird gesetzt…', async () => {
     await saveConfig();
@@ -1631,7 +1676,7 @@ async function saveCountdown() {
 async function saveCountdownSeconds() {
   const secs = parseInt(document.getElementById('countdownSeconds').value);
   if (!secs || secs < 1) { showToast('Bitte Sekunden eingeben'); return; }
-  timerEndHandled = false;
+  timerEndHandled    = false;
   state.countdownEnd = new Date(Date.now() + secs * 1000).toISOString();
   await withOp('Countdown wird gesetzt…', async () => {
     await saveConfig();
@@ -1641,10 +1686,12 @@ async function saveCountdownSeconds() {
 }
 
 async function clearCountdown() {
-  state.countdownEnd = null; timerEndHandled = false;
+  state.countdownEnd = null;
+  timerEndHandled    = false;
   await withOp('Countdown wird gelöscht…', async () => {
     await saveConfig();
-    document.getElementById('countdownInput').value = '';
+    const inp = document.getElementById('countdownInput');
+    if (inp) inp.value = '';
     document.getElementById('headerCountdown').classList.remove('visible');
     showToast('Countdown entfernt');
   });
@@ -1653,10 +1700,12 @@ async function clearCountdown() {
 function updateManualSelect() {
   const sel = document.getElementById('manualOption');
   if (!sel) return;
-  const cur = sel.value; sel.innerHTML = '';
+  const cur = sel.value;
+  sel.innerHTML = '';
   for (let i = 1; i <= state.optionCount; i++) {
     const o = document.createElement('option');
-    o.value = i; o.textContent = 'Gericht ' + i; sel.appendChild(o);
+    o.value = i; o.textContent = 'Gericht ' + i;
+    sel.appendChild(o);
   }
   if (cur) sel.value = cur;
 }
@@ -1668,36 +1717,29 @@ function updateAdminStats() {
     if (e.textContent !== String(v)) {
       e.textContent = v;
       e.style.transform = 'scale(1.15)';
-      setTimeout(() => e.style.transform = '', 200);
+      setTimeout(() => { e.style.transform = ''; }, 200);
     }
   };
-  set('statOnline', state.onlineCount);
-  set('statVoted', state.votedCount);
+  set('statOnline',   state.onlineCount);
+  set('statVoted',    state.votedCount);
   set('statNotVoted', Math.max(0, state.onlineCount - state.votedCount));
-  set('statTotal', state.votedCount);
+  set('statTotal',    state.votedCount);
 }
 
 function renderAdminPanel() {
   const panel = document.getElementById('adminPanel');
   panel.style.display = 'block';
-  panel.style.animation = 'slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both';
-  updateManualSelect(); updateAdminStats();
-  document.getElementById('optionSlider').value = state.optionCount;
-  document.getElementById('optionVal').textContent = state.optionCount;
-  document.getElementById('adminBar').style.display = 'none';
-  // Show ro admin button
-  const roAdminWrap = document.getElementById('roAdminBtnWrap');
-  if (roAdminWrap) roAdminWrap.style.display = 'block';
 
-  // If currently showing ended screen, switch to app + results
-  if (document.getElementById('endedScreen').classList.contains('show')) {
-    document.getElementById('endedScreen').classList.remove('show');
-    const appDisplay = selectedOrient === 'portrait' ? 'flex' : 'grid';
-    document.getElementById('app').style.display = appDisplay;
-    renderStatus(); renderVoteGrid(); renderChart(); renderResultsOverlay();
-    startCountdownDisplay(); startPolling();
-    if (state.status === 'closed') showResultsOverlay();
-  }
+  updateManualSelect();
+  updateAdminStats();
+
+  const slider = document.getElementById('optionSlider');
+  const val    = document.getElementById('optionVal');
+  if (slider) slider.value = state.optionCount;
+  if (val)    val.textContent = state.optionCount;
+
+  renderChartIn('adminChartContainer');
+  updateTotalDisplay();
 }
 
 function toggleAdmin() {
@@ -1705,21 +1747,50 @@ function toggleAdmin() {
 }
 
 // ══════════════════════════════════════════════
+//  UNIFIED ADMIN FAB HANDLER
+// ══════════════════════════════════════════════
+function handleAdminFab() {
+  // If already admin: toggle admin panel / go back from results
+  if (state.isAdmin) {
+    const resultsOverlay = document.getElementById('resultsOverlay');
+    const endedScreen    = document.getElementById('endedScreen');
+
+    if (endedScreen.classList.contains('show')) {
+      // On ended screen as admin → switch to app
+      endedScreen.classList.remove('show');
+      const appDisplay = selectedOrient === 'landscape' ? 'grid' : 'flex';
+      document.getElementById('app').style.display = appDisplay;
+      renderStatus(); renderVoteGrid(); renderChart();
+      renderAdminPanel(); startCountdownDisplay(); startPolling();
+      if (state.status === 'closed') { renderResultsOverlay(); showResultsOverlay(); }
+      return;
+    }
+
+    if (resultsOverlay.classList.contains('show')) {
+      // On results overlay → go back to main app
+      hideResultsOverlay();
+      return;
+    }
+
+    // On main app → toggle admin panel visibility
+    const panel = document.getElementById('adminPanel');
+    if (panel.style.display === 'none' || panel.style.display === '') {
+      panel.style.display = 'block';
+      renderAdminPanel();
+    } else {
+      panel.classList.toggle('collapsed');
+    }
+    return;
+  }
+
+  // Not admin → open login
+  openAdminLogin();
+}
+
+// ══════════════════════════════════════════════
 //  ADMIN LOGIN
 // ══════════════════════════════════════════════
 function openAdminLogin() {
-  if (state.isAdmin) {
-    // If on ended screen or results overlay, go to dashboard
-    const endedScreen = document.getElementById('endedScreen');
-    if (endedScreen.classList.contains('show')) {
-      renderAdminPanel();
-      return;
-    }
-    hideResultsOverlay();
-    const panel = document.getElementById('adminPanel');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    return;
-  }
   const modal = document.getElementById('adminLogin');
   modal.classList.add('show');
   setTimeout(() => document.getElementById('adminPwInput').focus(), 300);
@@ -1729,24 +1800,50 @@ function closeAdminLogin() {
   document.getElementById('adminLogin').classList.remove('show');
   document.getElementById('adminPwInput').value = '';
   document.getElementById('pwErr').classList.remove('show');
+  document.getElementById('adminPwInput').style.borderColor = '';
 }
 
 async function checkAdminPw() {
   setBtnLoading('btnLoginSubmit', true);
-  const pw = document.getElementById('adminPwInput').value;
-  const hash = await hashPassword(pw);
+  const pw          = document.getElementById('adminPwInput').value;
+  const hash        = await hashPassword(pw);
   const correctHash = await hashPassword('Tiger123!abc');
   setBtnLoading('btnLoginSubmit', false);
 
   if (hash === correctHash) {
     state.isAdmin = true;
     closeAdminLogin();
-    renderAdminPanel();
+
+    // Show welcome
     const welcome = document.createElement('div');
     welcome.className = 'admin-welcome';
-    welcome.innerHTML = `<div class="admin-welcome-inner"><div class="aw-icon">⚙️</div><h3>Willkommen, Admin!</h3><p>Dashboard wird geladen…</p></div>`;
+    welcome.innerHTML = `<div class="admin-welcome-inner">
+      <div class="aw-icon">⚙️</div>
+      <h3>Willkommen, Admin!</h3>
+      <p>Dashboard wird geladen…</p>
+    </div>`;
     document.body.appendChild(welcome);
     setTimeout(() => welcome.remove(), 2200);
+
+    // If on ended screen → switch to app
+    const endedScreen = document.getElementById('endedScreen');
+    if (endedScreen.classList.contains('show')) {
+      setTimeout(() => {
+        endedScreen.classList.remove('show');
+        const appDisplay = selectedOrient === 'landscape' ? 'grid' : 'flex';
+        document.getElementById('app').style.display = appDisplay;
+        renderStatus(); renderVoteGrid(); renderChart();
+        renderAdminPanel(); startCountdownDisplay(); startPolling();
+        if (state.status === 'closed') { renderResultsOverlay(); showResultsOverlay(); }
+      }, 600);
+      return;
+    }
+
+    renderAdminPanel();
+    if (state.status === 'closed') {
+      renderResultsOverlay();
+      showResultsOverlay();
+    }
   } else {
     const err = document.getElementById('pwErr');
     err.classList.add('show');
@@ -1765,23 +1862,24 @@ document.getElementById('adminLogin').addEventListener('click', function(e) {
 // ══════════════════════════════════════════════
 //  TOAST
 // ══════════════════════════════════════════════
+let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ══════════════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════════════
 window.addEventListener('load', () => {
-  // Auto-suggest landscape on wide screens
+  // Suggest landscape on wide screens
   if (window.innerWidth >= 900) {
-    document.getElementById('opLandscape').style.border = '2px solid rgba(0,51,153,0.3)';
+    document.getElementById('opLandscape').style.borderColor = 'rgba(0,51,153,0.25)';
   }
-  // Orientation picker is already visible by default in HTML
+  // App is hidden until loader completes — orientPicker handles first step
 });
 </script>
 </body>
